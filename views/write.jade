@@ -1,0 +1,27 @@
+extends layout
+
+block css
+  link(rel='stylesheet' href='/editor/css/medium-editor.css')
+  link(rel='stylesheet' href='/editor/css/themes/default.css')
+
+block content
+  div.editor-container.editor
+    div#title.editable.title(data-placeholder='标题', data-disable-toolbar='true')
+    div#subtitle.editable.subtitle(data-placeholder='副标题', data-disable-toolbar='true')
+    div#content.editable.content(data-placeholder='文章内容')
+    ul.buttons
+      li
+        button.btn.btn-success(type='button') 提交
+    a.home(href='/') 墨
+
+
+
+block script
+  script(src='/editor/js/medium-editor.js')
+  script.
+    var titleEditor = new MediumEditor('.title-editable', {
+        buttons: undefined
+    });
+
+    var contentEditor = new MediumEditor('.editable');
+

@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  // script(type='text/javascript' src='http://qzonestyle.gtimg.cn/qzone/openapi/qc_loader.js' data-appid="100229030" charset="utf-8")
+  .container
+    form.form-signin(role='form', name='adduser', action='/signin', method='post')
+      h2.form-signin-heading 请注册
+      input.form-control.top-input(type='text', placeholder='昵称', required='', autofocus='', name='username')
+      input.form-control.middle-input(type='email', placeholder='Email地址', required='', name='useremail')
+      input.form-control.bottom-input(type='password', placeholder='密码', required='')
+      button.btn.btn-lg.btn-primary.btn-block(type='submit') 注册
+
+
+    .openapi-login
+      button#qqLoginBtn.btn.btn-sm.btn-primary(type='button') 使用QQ登录
+
+
+block script
+  script.
+    $('#qqLoginBtn').click(function(e) {
+        window.open('https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101093252&redirect_uri=http%3a%2f%2fmoke.com%2fuserhome&scope=get_user_info');
+    });
+

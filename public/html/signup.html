@@ -22,10 +22,10 @@
 
 <div class="container">
 
-    <form class="form-signin" role="form">
+    <form class="form-signin" role="form" name="adduser" action="/adduser" method="post">
         <h2 class="form-signin-heading">请注册</h2>
-        <input type="text" class="form-control top-input" placeholder="昵称" required autofocus>
-        <input type="email" class="form-control middle-input" placeholder="Email地址" required>
+        <input type="text" class="form-control top-input" placeholder="昵称" required autofocus name="username">
+        <input type="email" class="form-control middle-input" placeholder="Email地址" required name="useremail">
         <input type="password" class="form-control bottom-input" placeholder="密码" required>
         <!--<label class="checkbox">
             <input type="checkbox" value="remember-me"> 记住我

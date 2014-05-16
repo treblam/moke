@@ -1,5 +1,20 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  section.index-section
+    h1.index-title 墨客
+    section.index-introduction
+      h2 分享你的观点，碰撞出火花！
+      p
+        a(href='./write') 开始写作
+  footer.index-footer
+    ul
+      li
+        a(href='./read') 阅读
+      li
+        a(href='./about') 关于
+      //
+          li
+            a(href='./signup.html') 注册
+      li
+        a(href='./signin') 登录

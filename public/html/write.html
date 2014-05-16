@@ -9,12 +9,10 @@
     <!-- Bootstrap -->
     <link href="/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/css/moke.css"/>
-    <link rel="stylesheet" href="/css/write.css"/>
 
     <link rel="stylesheet" href="/editor/css/medium-editor.css"> <!-- Core -->
     <link rel="stylesheet" href="/editor/css/themes/default.css"> <!-- or any other theme -->
 
-    <script src="/editor/js/medium-editor.js"></script>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -26,7 +24,7 @@
 <body>
 
 
-<div class="editor-container">
+<div class="editor-container editor">
 
     <div class="editable title" data-placeholder="标题" data-disable-toolbar="true" id="title"></div>
 
@@ -41,6 +39,7 @@
     <a class="home" href="/html/index.html">墨</a>
 </div>
 
+<script src="/editor/js/medium-editor.js"></script>
 <script>
     var titleEditor = new MediumEditor('.title-editable', {
         buttons: undefined

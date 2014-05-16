@@ -1,5 +1,56 @@
 /*全站公用的css*/
 
+/*-------首页--------*/
+
+.index-section {
+    padding: 50px 0 0 70px;
+}
+
+.index-title {
+    margin: 20px 0 20px 0;
+    font-weight: bold;
+}
+
+.index-introduction {
+    position: absolute;
+    top: 50%;
+    margin: -50px 0 0 0;
+    line-height: 46px;
+}
+
+.index-introduction h2 {
+    font-size: 18px;
+}
+
+.index-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-left: 70px;
+}
+
+.index-footer ul {
+    padding-left: 0;
+    height: 80px;
+}
+.index-footer ul li {
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 18px;
+}
+
+.index-footer ul li a {
+    border-bottom: 3px solid #d0d0d0;
+    color: #000000;
+    text-decoration: none;
+}
+
+.index-footer ul li a:hover {
+    border-bottom: 3px solid #000;
+}
+
+
 /*--------导航------------*/
 .home, .home:hover {
     position: fixed;
@@ -84,7 +135,7 @@
 }
 
 .article .content {
-    font-size: 22px;
+    font-size: 18px;
     line-height: 1.8;
 }
 
@@ -92,6 +143,7 @@
     margin-bottom: 1em;
 }
 
+/*-------文章详情页-------*/
 .detail-page .article .title {
     font-size: 50px;
 }
@@ -102,4 +154,158 @@
 
 .detail-page .article .article-info {
     font-size: 14px;
+}
+
+/*------个人主页------*/
+.user-header {
+    text-align: center;
+}
+
+.user-header .user-logo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+}
+
+.user-header .user-logo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+}
+
+.user-header .username {
+    font-weight: bold;
+}
+
+.user-header .user-intro {
+    font-size: 16px;
+    color: #808080;
+}
+
+.user-section {
+    margin-top: 50px;
+    border-top: 3px solid #d0d0d0;
+}
+
+.user-section .section-title {
+    font-size: 14px;
+    color: #808080;
+    margin: 10px 0 30px;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.user-recommended .article .title {
+    font-size: 18px;
+}
+
+/*------登录注册-----*/
+.form-signin {
+    max-width: 330px;
+    padding: 15px;
+    margin: 60px auto 0;
+}
+.form-signin .form-signin-heading,
+.form-signin .checkbox {
+    margin-bottom: 10px;
+}
+.form-signin .checkbox {
+    font-weight: normal;
+}
+.form-signin .form-control {
+    position: relative;
+    height: auto;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 10px;
+    font-size: 16px;
+}
+.form-signin .form-control:focus {
+    z-index: 2;
+}
+.form-signin .top-input {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.form-signin .middle-input {
+    border-radius: 0;
+    border-bottom-width: 0;
+}
+.form-signin .bottom-input {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.openapi-login {
+    text-align: center;
+    margin-top: 60px;
+}
+
+/*-----------关于-----------*/
+.about h1 {
+    font-weight: bold;
+}
+
+.about {
+    width: 600px;
+    margin: 100px auto 0;
+    display: block;
+}
+
+/*-------------编辑器--------------*/
+html, body {
+    width: 100%;
+    height: 100%;
+}
+.editor-container {
+    width: 600px;
+    margin: 0 auto 0 auto;
+    height: 600px;
+    padding-top: 150px;
+    display: block;
+}
+
+.editor-container textarea {
+    border: none;
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    resize: none;
+}
+
+.editor .title {
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.editor .subtitle {
+    font-size: 18px;
+    margin-top: 15px;
+}
+
+.editor .content {
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+.editor .editable:focus {
+    outline: none;
+}
+
+.editor .buttons {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+
+}
+
+.editor .buttons li {
+    margin-right: 10px;
+    list-style-type: none;
+    display: inline;
 }

@@ -6,11 +6,6 @@ router.get('/', function(req, res) {
   res.render('index', { title: 'Express' });
 });
 
-// Get hello world page
-router.get('/helloworld', function(req, res) {
-	res.render('helloworld', {title: 'hello, world!'});
-});
-
 // Get less css
 /*router.get("*.less", function(req, res) {
     var path = __dirname + req.url;
@@ -23,5 +18,71 @@ router.get('/helloworld', function(req, res) {
         });
     });
 });*/
+
+router.get('/read', function(req, res) {
+    res.render('read', {
+        title: "杂志"
+    });
+});
+
+router.get('/article', function(req, res) {
+    res.render('article', {
+        title: "文章"
+    });
+});
+
+router.get('/about', function(req, res) {
+    res.render('about', {
+        title: "关于"
+    });
+});
+
+router.get('/write', function(req, res) {
+    res.render('write', {
+        title: "写作"
+    });
+});
+
+router.get('/userlist', function(req, res) {
+    var db = req.db;
+    var collection = db.get('usercollection');
+    collection.find({}, {}, function(e, docs) {
+        res.render('userlist', {
+            "userlist": docs
+        })
+    })
+});
+
+router.get('/signin', function(req, res) {
+
+
+    res.render('signin', {
+        title: 'Add new user.'
+    });
+});
+
+router.post('/signin', function(req, res) {
+    var db = req.db;
+    var collection = db.get('usercollection');
+
+    var username = req.body.username;
+    var email = req.body.useremail;
+
+    collection.insert({
+        username: username,
+        email: email
+    }, function(err, doc) {
+        if (err) {
+            res.send('There was a problem adding the data to the database.')
+        } else {
+            res.location('userlist');
+            res.redirect('/userlist');
+        }
+    });
+});
+
+router.get('/userhome', function(req, res) {
+    res.render('userhome', {title: "个人中心"});
+})
 
 module.exports = router;
