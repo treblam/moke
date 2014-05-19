@@ -16,6 +16,8 @@
     "mongodb": "*",
     "monk": "*",
     "less": "*",
-    "medium-editor": "*"
+    "medium-editor": "*",
+    "passport": "*",
+    "connect-mongo": "*"
   }
 }

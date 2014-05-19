@@ -4,10 +4,15 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 var mango = require('mongodb');
 var monk = require('monk');
 var db = monk('localhost:27017/moke');
+var MongoStore = require('connect-mongo')(session);
+
+var passport = require('passport');
+// var qqStrategy = require('passport-qq').Strategy;
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
@@ -25,6 +30,17 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
+app.use(session({
+    secret: 'topsecret',
+    store: new MongoStore({
+        db: 'moke'
+    })
+}));
+
+// 初始化
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(function(req, res, next) {
