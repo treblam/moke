@@ -1,0 +1,64 @@
+extends layout
+
+block css
+    link(rel='stylesheet' href='/editor/css/medium-editor.css')
+    link(rel='stylesheet' href='/editor/css/themes/default.css')
+
+block content
+    .main-container
+        header.collection-header
+            h2#name.editable(data-placeholder='文集标题', data-disable-toolbar='true')
+              = collection ? collection.name : ''
+            div#intro.intro.editable(data-placeholder='文集介绍', data-disable-toolbar='true')
+              = collection ? collection.intro : ''
+
+
+        form#edit-coll(action='/collection', method='POST')
+            input(type='hidden', name='name')
+            input(type='hidden', name='intro')
+            input(type='hidden', name='collId', value=collection ? collection._id : '')
+
+        ul.buttons
+            li
+                button#delete-btn.btn.btn-default(type='button') 删除
+            li
+                button#cancel-btn.btn.btn-default(type='button') 取消
+            li
+                button#submit-btn.btn.btn-success(type='button') 发布
+
+block script
+    script(src='/editor/js/medium-editor.js')
+    script.
+        var nameEditor = new MediumEditor('#name');
+
+        var introEditor = new MediumEditor('#intro');
+
+        var form = $('#edit-coll')[0];
+
+        var collId = '#{collection ? collection._id : ''}';
+
+        $('#submit-btn').click(function(e) {
+            var name = nameEditor.serialize().name.value.replace(/^<p>(.*)<\/p>/, '$1');
+            var intro = introEditor.serialize().intro.value.replace(/^<p>(.*)<\/p>/, '$1');
+
+            form.elements['name'].value = name;
+            form.elements['intro'].value = intro;
+
+            form.submit();
+        });
+
+        $('#cancel-btn').click(function(e) {
+            window.location.href = '/collections';
+        });
+
+        $('#delete-btn').click(function(e) {
+            $.ajax({
+                type: "DELETE",
+                url: "/collection",
+                data: { collId: collId }
+            }).done(function( result ) {
+                if (result.status == 'success') {
+                    window.location.href = '/read';
+                }
+            });
+        });

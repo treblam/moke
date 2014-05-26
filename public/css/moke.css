@@ -140,22 +140,39 @@
 .article .content {
     font-size: 18px;
     line-height: 1.8;
+    margin: 15px 0 30px;
+
+}
+
+.editable:focus {
+    outline: none;
 }
 
 .article .content p {
     margin-bottom: 1em;
 }
 
+.article .content h3 {
+    font-size: 32px;
+    font-weight: bold;
+    padding-top: 10px;
+}
+
+.article .content h4 {
+    font-size: 24px;
+    font-weight: bold;
+}
+
 /*-------文章详情页-------*/
-.detail-page .article .title {
+.detail-page .title {
     font-size: 50px;
 }
 
-.detail-page .article .subtitle {
+.detail-page .subtitle {
     font-size: 30px;
 }
 
-.detail-page .article .article-info {
+.detail-page .article-info {
     font-size: 14px;
 }
 
@@ -190,7 +207,7 @@
 
 .user-section {
     margin-top: 50px;
-    border-top: 3px solid #d0d0d0;
+    border-top: 1px solid #d0d0d0;
 }
 
 .user-section .section-title {
@@ -266,10 +283,10 @@ html, body {
     height: 100%;
 }
 .editor-container {
-    width: 600px;
+    width: 700px;
     margin: 0 auto 0 auto;
     height: 600px;
-    padding-top: 150px;
+    padding: 150px 0 0 0;
     display: block;
 }
 
@@ -281,34 +298,171 @@ html, body {
     resize: none;
 }
 
-.editor .title {
-    font-size: 30px;
-    font-weight: bold;
-}
-
-.editor .subtitle {
-    font-size: 18px;
-    margin-top: 15px;
-}
-
-.editor .content {
-    font-size: 16px;
-    margin-top: 15px;
-}
-
-.editor .editable:focus {
-    outline: none;
-}
-
-.editor .buttons {
+.buttons {
     position: fixed;
     right: 0;
     bottom: 0;
 
 }
 
-.editor .buttons li {
+.buttons li {
     margin-right: 10px;
     list-style-type: none;
+    display: inline;
+}
+
+/*-----------导航------------*/
+.site-menu {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    display: none;
+    background: #ffffff;
+}
+
+.menu-wrapper {
+    width: 200px;
+    height: 400px;
+    border: 2px solid #000000;
+    padding-top: 20px;
+    border-radius: 3px;
+}
+
+.menu-items li {
+    margin-bottom: 15px;
+}
+
+.menu-items .avatar {
+    margin-right: 10px;
+}
+
+.menu-items a {
+    color: #000000;
+}
+
+.collection-header {
+    padding: 100px 0 100px;
+    text-align: center;
+}
+
+.collection-header h2 {
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.collection-header .intro {
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.article-list {
+    border-top: 1px solid #d0d0d0;
+}
+
+/*-----------文集列表------------*/
+.collections {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.collection a {
+    color: #000000;
+    text-decoration: none;
+}
+
+.collection {
+    display: inline-block;
+    width: 300px;
+    height: 188px;
+    margin: 15px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    text-align: center;
+    position: relative;
+}
+
+.collection .coll-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.collection .name {
+    font-weight: bold;
+    font-size: 28px;
+    display: block;
+    padding: 10px 8px 0;
+}
+
+.collection .intro {
+    font-size: 16px;
+    color: #808080;
+    margin-top: 5px;
+    display: block;
+    padding: 0 8px;
+}
+
+.collection .follow-btn {
+    margin-top: -80px;
+}
+
+/*----------编辑器的css调整---------*/
+.medium-editor-placeholder:after {
+    width: 100%;
+}
+
+/*------------选择文章------------*/
+.choose-articles {
+    position: fixed;
+    right: 10px;
+    bottom: 60px;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    padding: 10px;
+    z-index: 10;
+    background: #ffffff;
+}
+
+.choose-articles .instruct {
+    margin-bottom: 5px;
+    color: #808080;
+}
+
+.my-articles {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    line-height: 1.8em;
+}
+
+.my-articles li {
+    position: relative;
+}
+
+.my-articles li .add-my-article {
+    color: #000000;
+    display: block;
+}
+
+.my-articles li .remove-article {
+    display: none;
+}
+
+.my-articles .already-contributed .add-my-article {
+    color: #808080;
+    pointer-events: none;
+    cursor: text;
+}
+
+.my-articles .already-contributed .add-my-article:hover {
+    text-decoration: none;
+}
+
+.my-articles .already-contributed .remove-article {
+    color: red;
+    position: absolute;
+    right: 10px;
+    top: 0;
     display: inline;
 }

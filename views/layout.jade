@@ -4,7 +4,7 @@ html
     meta(charset='utf-8')
     meta(http-equiv='X-UA-Compatible', content='IE=edge')
     meta(name='viewport', content='width=device-width, initial-scale=1')
-    title title
+    title= title
 
     //
      Bootstrap
@@ -18,14 +18,37 @@ html
     //
       WARNING: Respond.js doesn't work if you view the page via file://
     //if lt IE 9
-    script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
-    script(src='https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js')
+    //script(src='https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js')
+    //script(src='https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js')
 
     // link(rel='stylesheet', href='/stylesheets/style.css')
   body
     block content
 
+
+
+    if user
+      a#menu-btn.home(href='/')
+        img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
+
+      nav#site-menu.site-menu
+        div.menu-wrapper
+          ul.menu-items
+            li
+              a(href='/read') 首页
+                li
+                  a(href='/home/#{user._id}')
+                    img.avatar(src='#{user.avatar}' alt='头像')
+                    | #{user.nickname}
+                  li
+                    a(href='/write') 写作
+                  li
+                    a(href='/drafts') 草稿
+                  li
+                    a(href='/collections') 文集
+
     script(type='text/javascript' src='/js/jquery-1.11.1.min.js')
     script(type='text/javascript' src='/js/bootstrap.min.js')
+    script(type='text/javascript' src='/js/moke.js')
 
     block script

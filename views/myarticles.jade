@@ -1,0 +1,6 @@
+div.instruct 请选择
+    ul.my-articles
+        each article in articles
+            li(class=article.isContributed ? 'already-contributed' : '', data-id=article._id.toString())
+                a.add-my-article(href='#')= article.title
+                a.remove-article(href='#') 删除

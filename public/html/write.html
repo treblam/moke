@@ -24,7 +24,7 @@
 <body>
 
 
-<div class="editor-container editor">
+<div class="editor-container editor article">
 
     <div class="editable title" data-placeholder="标题" data-disable-toolbar="true" id="title"></div>
 
@@ -35,6 +35,12 @@
     <ul class="buttons">
         <li><button type="button" class="btn btn-success">提交</button></li>
     </ul>
+
+    <form action="/write" method="post" name="article">
+        <input type="hidden" name="title">
+        <input type="hidden" name="subtitle"/>
+        <input type="hidden" name="content"/>
+    </form>
 
     <a class="home" href="/html/index.html">墨</a>
 </div>

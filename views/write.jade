@@ -5,23 +5,76 @@ block css
   link(rel='stylesheet' href='/editor/css/themes/default.css')
 
 block content
-  div.editor-container.editor
+  div.editor-container.article.detail-page
     div#title.editable.title(data-placeholder='标题', data-disable-toolbar='true')
+      != article ? article.title : ''
     div#subtitle.editable.subtitle(data-placeholder='副标题', data-disable-toolbar='true')
+      != article ? article.subtitle : ''
     div#content.editable.content(data-placeholder='文章内容')
+      != article ? article.content : ''
     ul.buttons
       li
-        button.btn.btn-success(type='button') 提交
-    a.home(href='/') 墨
+        button#delete-btn.btn.btn-default(type='button') 删除
+      li
+        button#cancel-btn.btn.btn-default(type='button') 取消
+      li
+        button#submit-btn.btn.btn-success(type='button') 发布
 
+    form(action='/article', method='post', name='article')
+      input(type='hidden', name='title')
+      input(type='hidden', name='subtitle')
+      input(type='hidden', name='content')
+      input#article-id(type='hidden', name='articleId' value=article ? article._id : '')
 
 
 block script
   script(src='/editor/js/medium-editor.js')
   script.
-    var titleEditor = new MediumEditor('.title-editable', {
-        buttons: undefined
+    var titleEditor = new MediumEditor('#title');
+
+    var articleId = '#{article ? article._id : ''}';
+
+    var uid = '#{user._id}';
+
+    var subtitleEditor = new MediumEditor('#subtitle');
+
+    var contentEditor = new MediumEditor('#content');
+
+    var form = document.forms['article'];
+
+    $('#submit-btn').click(function(e) {
+      var title = titleEditor.serialize().title.value.replace(/^<p>(.*)<\/p>/, '$1');
+      var subtitle = subtitleEditor.serialize().subtitle.value.replace(/^<p>(.*)<\/p>/, '$1');
+      var content = contentEditor.serialize().content.value;
+
+      console.log(title);
+      console.log(subtitle);
+      console.log(content);
+
+      if (form) {
+        form.elements['title'].value = title;
+        form.elements['subtitle'].value = subtitle;
+        form.elements['content'].value = content;
+        form.submit();
+      }
     });
 
-    var contentEditor = new MediumEditor('.editable');
+    $('#cancel-btn').click(function(e) {
+        window.location.href = '/home/' + uid;
+    });
 
+    if (!articleId) {
+        $('#delete-btn').hide();
+    }
+
+    $('#delete-btn').click(function(e) {
+         $.ajax({
+            type: "DELETE",
+            url: "/article",
+            data: { articleId: articleId }
+         }).done(function( result ) {
+            if (result.status == 'success') {
+                window.location.href = '/home/' + uid;
+            }
+         });
+      });
