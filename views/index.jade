@@ -11,7 +11,7 @@ block content
             a(href='./read') 阅读
             a(href='./read') 关于
 
-    //
+
       footer.index-footer
         ul
           li
@@ -22,7 +22,7 @@ block content
               li
                 a(href='./signup.html') 注册
           li
-            if user != null
+            if user
               span 你好，#{user.nickname}
                 a(href='./logout') 退出
             else
