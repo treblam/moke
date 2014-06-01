@@ -5,13 +5,15 @@ block css
   link(rel='stylesheet' href='/editor/css/themes/default.css')
 
 block content
-  div.editor-container.article.detail-page
-    div#title.editable.title(data-placeholder='标题', data-disable-toolbar='true')
-      != article ? article.title : ''
-    div#subtitle.editable.subtitle(data-placeholder='副标题', data-disable-toolbar='true')
-      != article ? article.subtitle : ''
-    div#content.editable.content(data-placeholder='文章内容')
-      != article ? article.content : ''
+  div.article-container
+    article.article.detail-page.article-editor
+      hgroup
+        h3#title.editable.title(data-placeholder='标题', data-disable-toolbar='true', data-disable-return='true')
+          != article ? article.title : ''
+        h4#subtitle.editable.subtitle(data-placeholder='副标题', data-disable-toolbar='true', data-disable-return='true')
+          != article ? article.subtitle : ''
+      div#content.editable.content(data-placeholder='文章内容')
+        != article ? article.content : ''
     ul.buttons
       li
         button#delete-btn.btn.btn-default(type='button') 删除

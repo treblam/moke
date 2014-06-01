@@ -20,6 +20,13 @@ block script
   script.
     $('#qqLoginBtn').click(function(e) {
         // window.open('https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101093252&redirect_uri=http%3a%2f%2fmoke.com%2fuserhome&scope=get_user_info');
-        window.open('http://moke.com/auth/qq');
+        window.open('/auth/qq');
     });
 
+    window.onmessage = function(e) {
+        if (e.data === true) {
+            window.location.href = '/read';
+        } else {
+            // do nothing.
+        }
+    }

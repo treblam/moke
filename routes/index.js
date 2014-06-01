@@ -18,7 +18,7 @@ var collections = db.get('collections');
 passport.use(new qqStrategy({
         clientID: '101093252',
         clientSecret: '4b7804cb290d2f71881a9e70a9df417c',
-        callbackURL: "http://moke.com/auth/qq/callback"
+        callbackURL: 'http://moke.io/auth/qq/callback'
     },
     function(accessToken, refreshToken, profile, done) {
         console.log("accessToken: " + accessToken);
@@ -130,7 +130,7 @@ router.get('/read', filter.authorize, function(req, res) {
         if (err) {
 
         } else {
-            findAuthorsForArticles(articles, function(arts) {
+            processArticleData(articles, true, function(arts) {
                 res.render('read', {
                     title: "杂志",
                     articles: arts,
@@ -141,7 +141,11 @@ router.get('/read', filter.authorize, function(req, res) {
     });
 });
 
-function findAuthorsForArticles(articles, callback) {
+/*
+  处理文章信息，包括查找作者，并提取副标题等
+  needSubtitle 在副标题为空时，是否需要从内容提取副标题
+ */
+function processArticleData(articles, needSubtitle, callback) {
     var count = 0;
 
     if (!articles || articles.length == 0) {
@@ -155,6 +159,9 @@ function findAuthorsForArticles(articles, callback) {
         var authorId = article.author;
         var users = db.get('users');
 
+        if (needSubtitle && !article.subtitle) {
+            article.subtitle = extractSubtitle(article.content);
+        }
 
         users.findById(authorId, function(err, author) {
             count++;
@@ -177,9 +184,7 @@ function findAuthorsForArticles(articles, callback) {
 router.get('/article/:articleId', function(req, res) {
     var articleId = req.param('articleId');
 
-    var db = req.db;
-    var articles = db.get('articles');
-    var users = db.get('users');
+    console.log('why request twice?');
 
     console.log('articleId: ');
     console.log(articleId);
@@ -190,20 +195,24 @@ router.get('/article/:articleId', function(req, res) {
         } else {
             console.log('found article:');
             console.log(article);
-            users.findById(article.author, function(err, user) {
-                if (err) {
 
-                } else {
-                    console.log('found user: ');
-                    console.log(user);
+            processArticleData([ article ], false, function(articleArr) {
+                var newArticle = articleArr && articleArr[0];
 
-                    article.author = user;
-                    res.render('article', {
-                        article: article,
-                        user: req.user
-                    });
+                if (!newArticle) {
+                    res.send('查找文章失败');
+                    return;
                 }
-            })
+
+                newArticle.isRecommended = include(newArticle.recommends, req.user && req.user._id.toString());
+
+                // newArticle.isFollowing =
+
+                res.render('article', {
+                    article: newArticle,
+                    user: req.user
+                });
+            });
         }
     });
 });
@@ -221,7 +230,7 @@ router.delete('/article', function(req, res) {
         console.log('articleId: ');
         console.log(articleId);
 
-        console.log('remove article err:')
+        console.log('remove article err:');
         console.log(err);
 
         articles.findById(articleId, function(err, article) {
@@ -230,9 +239,7 @@ router.delete('/article', function(req, res) {
         })
 
         res.json({ status: 'success', data: null });
-    })
-
-
+    });
 });
 
 router.get('/about', function(req, res) {
@@ -309,22 +316,53 @@ router.get('/home/:uid', function(req, res) {
     console.log('uid: ');
     console.log(uid);
 
+    if (!uid) {
+        res.send('用户id为空');
+        return;
+    }
+
     users.findById(uid, function(err, user) {
         if (err != null) {
 
         } else {
-            articles.find({ author: articles.id(uid) }, function(err, docs) {
+            user.isFollowing = req.user && include(req.user.userFollowing, uid);
+
+            articles.find({ author: articles.id(uid) }, { limit: 4 }, function(err, docs) {
                 if (err) {
 
                 } else {
                     console.log('user articles: ');
                     console.log(docs);
 
-                    // todo 要判断主人态，主人态要加编辑功能
-                    res.render('home', {
-                        title: "个人主页",
-                        user: user,
-                        articles: docs
+                    processArticleData(docs, true, function(newDocs) {
+                        collections.find({ creator: collections.id(uid) }, { limit: 4 }, function(err, colls) {
+                            if (err) {
+                                console.log(err);
+                                res.send(err);
+                            } else {
+                                processColls(colls, req.user, function(newColls) {
+
+                                    articles.find({ recommends: users.id(uid) }, { limit: 4 }, function(err, arts) {
+                                        if (err) {
+                                            console.log(err);
+                                            res.send(err);
+                                        } else {
+                                            processArticleData(arts, false, function(newArts) {
+                                                // todo 要判断主人态，主人态要加编辑功能
+                                                res.render('home', {
+                                                    title: "个人主页",
+                                                    user: user,
+                                                    articles: newDocs,
+                                                    collections: newColls,
+                                                    recommends: newArts
+                                                });
+                                            });
+                                        }
+                                    });
+
+                                });
+                            }
+                        });
                     });
                 }
             });
@@ -334,7 +372,7 @@ router.get('/home/:uid', function(req, res) {
 });
 
 function include(arr, obj) {
-    return arr.some(function(item) {
+    return obj && arr && arr.some(function(item) {
         return item.toString() == obj;
     });
 }
@@ -348,18 +386,26 @@ router.get('/collections', function(req, res) {
 
             var user = req.user;
 
-            colls.forEach(function(collection, index) {
-                collection.isFollowing = user.collFollowing && include(user.collFollowing, collection._id.toString());
-            });
-
-            res.render('collections', {
-                title: '文集',
-                collections: colls,
-                user: user
+            processColls(colls, user, function(newColls) {
+                res.render('collections', {
+                    title: '文集',
+                    collections: newColls,
+                    user: user
+                });
             });
         }
     });
 });
+
+function processColls(colls, currUser, callback) {
+    colls.forEach(function(collection, index) {
+        collection.isFollowing = currUser &&
+            currUser.collFollowing &&
+            include(currUser.collFollowing, collection._id.toString());
+    });
+
+    callback(colls);
+}
 
 router.get('/collection/:collectionId', function(req, res) {
     var collId = req.param('collectionId');
@@ -381,7 +427,7 @@ router.get('/collection/:collectionId', function(req, res) {
                 if (err) {
 
                 } else {
-                    findAuthorsForArticles(arts, function(newArticles) {
+                    processArticleData(arts, true, function(newArticles) {
                         coll.articles = newArticles;
                         res.render('collection', {
                             title: '文集',
@@ -607,12 +653,21 @@ router.get('/auth/qq',
 );
 
 router.get('/auth/qq/callback',
-    passport.authenticate('qq', { successRedirect: '/read', failureRedirect: '/signin' })
+    passport.authenticate('qq', { successRedirect: '/loginredirect?suc=1', failureRedirect: '/loginredirect?suc=0' })
 );
 
 router.get('/logout', function(req, res){
     req.logout();
     res.redirect('/');
+});
+
+// 这个页面专门用来做登录后的跳转，通知给登录窗口的opener
+router.get('/loginredirect', function(req, res) {
+    // var isSuc = req.query['suc'] == 1;
+
+    res.render('loginredirect', {
+
+    });
 });
 
 router.post('/article', filter.authorize, function(req, res) {
@@ -782,6 +837,120 @@ router.get('/decontribute', filter.authorize, function(req, res) {
             }
         }
     });
+});
+
+router.get('/recommend_article', filter.authorize, function(req, res) {
+    var articleId = req.query['articleId'];
+    var uid = req.user._id;
+    var op = req.query['op'];
+
+    if (!articleId || !uid) {
+        res.json({
+            status: 'fail',
+            message: '文章id或用户id为空，无法推荐'
+        });
+
+        return;
+    }
+
+    var replacement = op == 1 ?
+    {
+        $addToSet: {
+            recommends: users.id(uid)
+        }
+    }
+        :
+    {
+        $pull: {
+            recommends: users.id(uid)
+        }
+    };
+
+    articles.update({_id: articleId}, replacement, function(err, count) {
+        if (err) {
+            res.json({
+                status: 'error',
+                message: err.toString()
+            });
+
+            return;
+        }
+
+        if (count > 0) {
+            res.json({
+                status: 'success',
+                message: '推荐成功',
+                data: {
+                    isRecommended: op == 1
+                }
+            });
+        } else {
+            res.json({
+                status: 'fail',
+                message: '推荐失败'
+            });
+        }
+    });
+
+});
+
+function extractSubtitle(content) {
+    return content && content.replace(/(<([^>]+)>)/ig, '').substr(0, 60) + '...';
+}
+
+router.get('/follow_user', filter.authorize, function(req, res) {
+    var uid = req.query['uid'];
+    var op = req.query['op'];
+
+    if (!uid) {
+        res.json({
+            status: 'fail',
+            message: '用户id为空，无法收听'
+        });
+
+        return;
+    }
+
+    var replacement = op == 1 ?
+    {
+        $addToSet: {
+            userFollowing: users.id(uid)
+        }
+    }
+        :
+    {
+        $pull: {
+            userFollowing: users.id(uid)
+        }
+    };
+
+    users.update({_id: req.user._id}, replacement, function(err, count) {
+        if (err) {
+            res.json({
+                status: 'error',
+                message: err.toString()
+            });
+
+            return;
+        }
+
+        if (count > 0) {
+            res.json({
+                status: 'success',
+                message: '修改订阅状态成功',
+                data: {
+                    isFollowing: op == 1
+                }
+            });
+        } else {
+            res.json({
+                status: 'fail',
+                message: '修改订阅状态失败'
+            });
+        }
+    });
+
+
 });
 
 module.exports = router;

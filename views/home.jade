@@ -8,6 +8,12 @@ block content
       h1.username #{user.nickname}
       p.user-intro
         = user.intro ? user.intro : '这家伙很懒，什么都没留下。'
+      .follow-wrapper
+        if user.isFollowing
+          button#subscribe-btn.btn.btn-lg.btn-success 已订阅
+        else
+          button#subscribe-btn.btn.btn-lg.btn-default 订阅
+
     div.user-section
       h3.section-title 他的文章
       each article in articles
@@ -25,6 +31,22 @@ block content
               a(href='#')= user.nickname
               | 发表在
               a(href='#') 人物
+
+    if collections && collections.length > 0
+        div.user-section
+          h3.section-title 他的文集
+          ul.collections
+            each collection in collections
+                li.collection
+
+                    a.coll-link(href='/collection/#{collection._id}')
+                        span.name= collection.name
+                        span.intro= collection.intro
+
+                    if collection.isFollowing
+                        button.btn.btn-sm.btn-success.follow-btn(data-collid=collection._id.toString()) 已订阅
+                    else
+                        button.btn.btn-sm.btn-default.follow-btn(data-collId=collection._id.toString()) 订阅
 
 
       //article.article
@@ -71,54 +93,87 @@ block content
       //      | 发表在
       //      a(href='#') 豆瓣网
 
-    div.user-section.user-recommended
-      h3.section-title 他的推荐
-      article.article
-        header
-          // <div class="collection"><a href="#">月过女墙</a></div>
-          hgroup
-            h3.title
-              a(href='/article') 天色已晚
-            // <h4 class="subtitle"><a href="/article">我已经三个月零十七天没有吃肉了，我的三个哥哥和两个妹妹也是。捉襟见肘的生活使得母亲小心翼翼地避免谈到肉，但邻居家飘来的肉香引起了我们的注意。</a></h4>
-          section.article-info
-            a.avatar(href='#')
-              img(src='/images/avatar.jpeg', alt='作者')
-            a(href='#') 朱山坡
-            | 发表在
-            a(href='#') 朔方
-      article.article
-        header
-          // <div class="collection"><a href="#">月过女墙</a></div>
-          hgroup
-            h3.title
-              a(href='/article') 星空下跳舞的女人
-            // <h4 class="subtitle"><a href="/article">到家前，去附近的“85度C”面包坊买面包。付账时，排在我前面的是位头发花白的老妇人。她没有拿面包，只买了一杯胚芽豆奶，然后靠窗坐下，用吸管搅拌两下，喝了一口，开始看报纸。</a></h4>
-          section.article-info
-            a.avatar(href='#')
-              img(src='/images/avatar.jpeg', alt='作者')
-            a(href='#') 滕肖澜
-            | 发表在
-            a(href='#') 豆瓣网
-      article.article
-        header
-          // <div class="collection"><a href="#">月过女墙</a></div>
-          hgroup
-            h3.title
-              a(href='/article') 患儿朱德庸
-            // <h4 class="subtitle"><a href="/article">那一刻，我原谅了自己</a></h4>
-          section.article-info
-            a.avatar(href='#')
-              img(src='/images/avatar.jpeg', alt='作者')
-            a(href='#') 朱德庸
-            | 发表在
-            a(href='#') 人物
+    if recommends && recommends.length > 0
+        div.user-section.user-recommended
+          h3.section-title 他的推荐
+          each article in recommends
+              article.article
+                header
+                  // <div class="collection"><a href="#">月过女墙</a></div>
+                  hgroup
+                    h3.title
+                      a(href='/article/#{article._id}')= article.title
+                    // <h4 class="subtitle"><a href="/article">我已经三个月零十七天没有吃肉了，我的三个哥哥和两个妹妹也是。捉襟见肘的生活使得母亲小心翼翼地避免谈到肉，但邻居家飘来的肉香引起了我们的注意。</a></h4>
+                  section.article-info
+                    a.avatar(href='/home/#{article.author._id}')
+                      img(src='#{article.author.avatar}', alt='作者')
+                    a(href='/home/#{article.author._id}')= article.author.nickname
+                    | 发表在
+                    a(href='#') 朔方
+
 
     a.home(href='/')
       img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
 
-block script
-  script.
-    $('#qqLoginBtn').click(function(e) {
-        window.open('https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101093252&redirect_uri=http://moke.com/userhome&scope=get_user_info');
-    });
 
+block script
+    script.
+        var uid = '#{user._id}';
+        var followBtn = $('#subscribe-btn');
+
+        followBtn.click(function(e) {
+            var isFollowing = followBtn.is('.btn-success');
+            $.ajax({
+                url: '/follow_user',
+                data: {
+                    uid: uid,
+                    op: isFollowing ? 0 : 1
+                }
+            }).success(function(data) {
+                if (data.status == 'success') {
+                    if (data.data.isFollowing) {
+                        followBtn.removeClass('btn-default').addClass('btn-success');
+                        followBtn.text('已订阅')
+                    } else {
+                        followBtn.removeClass('btn-success').addClass('btn-default');
+                        followBtn.text('订阅')
+                    }
+                } else {
+                    alert(data.message);
+                }
+            });
+        });
+
+        $('.follow-btn').click(function(e) {
+            var button = $(this);
+            var isFollowing = button.is('.btn-success');
+            var collId = button.data('collid');
+            var url;
+
+            if (isFollowing) {
+                url = '/coll_unsubscribe';
+            } else {
+                url = '/coll_subscribe';
+            }
+
+            $.ajax({
+                url: url,
+                data: {collId: collId}
+            }).done(function(data) {
+                if (data) {
+                    if (data.status == 'success') {
+                        if (data.data.isFollowing) {
+                            button.removeClass('btn-default').addClass('btn-success').text('已订阅');
+                        } else {
+                            button.removeClass('btn-success').addClass('btn-default').text('订阅');
+                        }
+                    } else {
+                        alert(data.message);
+                    }
+                } else {
+                    alert('操作失败');
+                }
+            }).fail(function(data) {
+                alert('操作失败');
+            })
+        });
