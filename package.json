@@ -15,8 +15,6 @@
     "jade": "~1.3.0",
     "mongodb": "*",
     "monk": "*",
-    "less": "*",
-    "medium-editor": "*",
     "passport": "*",
     "connect-mongo": "*"
   }

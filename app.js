@@ -80,6 +80,4 @@ app.use(function(err, req, res, next) {
     });
 });
 
-console.log('aaaaaaaaaa');
-
 module.exports = app;
