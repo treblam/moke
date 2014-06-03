@@ -327,6 +327,8 @@
 /*-----------关于-----------*/
 .about h1 {
     font-weight: bold;
+    margin-top: 150px;
+    margin-bottom: 30px;
 }
 
 .about {
