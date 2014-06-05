@@ -106,8 +106,8 @@ router.get('/', function(req, res) {
     console.log('session: ');
     console.log(req.session);
     console.log(req.user != null);
+    console.log('test');
     res.render('index', { title: '首页', user: req.user });
-    
 });
 
 // Get less css
