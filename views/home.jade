@@ -28,9 +28,10 @@ block content
             section.article-info
               a.avatar(href='#')
                 img(src='#{user.avatar}', alt='头像')
-              a(href='#')= user.nickname
-              | 发表在
-              a(href='#') 人物
+              a(href='/home/#{user._id}')= user.nickname
+              if article.collection
+                | 发表在
+                a(href='/collection/#{article.collection._id}')= article.collection.name
 
     if collections && collections.length > 0
         div.user-section
@@ -108,9 +109,9 @@ block content
                     a.avatar(href='/home/#{article.author._id}')
                       img(src='#{article.author.avatar}', alt='作者')
                     a(href='/home/#{article.author._id}')= article.author.nickname
-                    | 发表在
-                    a(href='#') 朔方
-
+                    if article.collection
+                      | 发表在
+                      a(href='/collection/#{article.collection._id}')= article.collection.name
 
     a.home(href='/')
       img(src='/images/mo/7935875_203322167100_2.jpg' alt='')

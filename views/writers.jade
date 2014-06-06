@@ -1,0 +1,69 @@
+extends layout
+block content
+    .main-container
+        h1.h1 作者
+        ul.users
+            each user in users
+                li.user
+
+                    a.coll-link(href='/home/#{user._id}')
+
+                        .user-header
+                            div.user-logo
+                                img(src='#{user.avatar}', alt='头像')
+                            h1.username #{user.nickname}
+                            p.user-intro
+                                = user.intro ? user.intro : '这家伙很懒，什么都没留下。'
+                            .follow-wrapper
+                                if user.isFollowing
+                                    button.follow-btn.btn.btn-lg.btn-success(data-uid=user._id.toString()) 已订阅
+                                else
+                                    button.follow-btn.btn.btn-lg.btn-default(data-uid=user._id.toString()) 订阅
+
+
+
+                    //
+                      span.name= writer.nickname
+                      span.intro= writer.intro
+
+                  //
+                    if writer.isFollowing
+                        button.btn.btn-sm.btn-success.follow-btn(data-collid=writer._id.toString()) 已订阅
+                    else
+                        button.btn.btn-sm.btn-default.follow-btn(data-collId=writer._id.toString()) 订阅
+
+      //
+        ul.buttons
+            li
+                button#create-collection.btn.btn-success(type='button') 创建文集
+
+block script
+    script.
+        $('.follow-btn').click(function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var button = $(this);
+            var isFollowing = button.is('.btn-success');
+            var uid = button.data('uid');
+            $.ajax({
+                url: '/follow_user',
+                data: {
+                    uid: uid,
+                    op: isFollowing ? 0 : 1
+                }
+            }).success(function(data) {
+                if (data.status == 'success') {
+                    if (data.data.isFollowing) {
+                        button.removeClass('btn-default').addClass('btn-success');
+                        button.text('已订阅');
+                    } else {
+                        button.removeClass('btn-success').addClass('btn-default');
+                        button.text('订阅');
+                    }
+                } else {
+                    alert(data.message);
+                }
+            }).fail(function(data) {
+                alert('操作失败');
+            });
+        });

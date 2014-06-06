@@ -234,9 +234,27 @@
     margin-top: 5px;
 }
 
+.collection-info .collection-body {
+    margin-top: 15px;
+    color: #808080;
+}
+
+.collection-body .collection-title {
+    margin: 0 0 5px;
+}
+
+.collection-body .collection-title a {
+    color: #000000;
+}
+
+.collection-info .follow-wrapper {
+    margin-top: 5px;
+}
+
 /*------个人主页------*/
 .user-header {
     text-align: center;
+    padding: 20px 0;
 }
 
 .user-header .user-logo {
@@ -462,6 +480,38 @@ html, body {
     margin-top: -80px;
 }
 
+/*------------用户列表------------*/
+.users {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.user {
+    display: inline-block;
+    width: 300px;
+    margin: 15px 10px;
+    border: 1px solid #d0d0d0;
+    border-radius: 3px;
+    text-align: center;
+    position: relative;
+}
+
+.user a {
+    color: #000000;
+    text-decoration: none;
+}
+
+.user .user-header .user-intro {
+    height: 44px;
+    overflow: hidden;
+}
+
+.user .user-header .username {
+    height: 39px;
+    overflow: hidden;
+}
+
 /*----------编辑器的css调整---------*/
 .medium-editor-placeholder:after {
     width: 100%;
@@ -520,4 +570,18 @@ html, body {
     right: 10px;
     top: 0;
     display: inline;
+}
+
+/*-----------内容为空的引导----------*/
+.empty-instruct {
+    font-size: 24px;
+    text-align: center;
+    padding-top: 250px;
+}
+
+.h1 {
+    font-weight: bold;
+    font-size: 50px;
+    text-align: center;
+    margin: 50px 0;
 }

@@ -124,31 +124,55 @@ router.get('/', function(req, res) {
 router.get('/read', filter.authorize, function(req, res) {
     var db = req.db;
     var articles = db.get('articles');
+    var user = req.user;
 
-    articles.find({}, function(err, articles) {
-        if (err) {
+    articles.find(
+        {
+            $or: [
+                { author: { $in: user.userFollowing } },
+                { collections: { $in: user.collFollowing } }
+            ]
+        },
+        { limit: 10, sort: [['_id', 'desc']] },
+        function(err, articles) {
+            if (err) {
 
-        } else {
-            processArticleData(articles, true, function(arts) {
-                res.render('read', {
-                    title: "杂志",
-                    articles: arts,
-                    user: req.user
+            } else {
+                processArticleData(articles, true, null, function(arts) {
+                    res.render('read', {
+                        title: "杂志",
+                        articles: arts,
+                        user: req.user
+                    });
                 });
-            });
+            }
         }
-    });
+    );
 });
 
 /*
   处理文章信息，包括查找作者，并提取副标题等
   needSubtitle 在副标题为空时，是否需要从内容提取副标题
  */
-function processArticleData(articles, needSubtitle, callback) {
+function processArticleData(articles, needSubtitle, user, callback) {
     var count = 0;
+    var counter = 0;
+
+    var isAuthorComplete = false;
+    var isCollComplete = false;
 
     if (!articles || articles.length == 0) {
         callback(articles);
+    }
+
+    function findCollCallback() {
+        if (counter == articles.length) {
+            isCollComplete = true;
+
+            if (isAuthorComplete) {
+                callback(articles);
+            }
+        }
     }
 
     articles.forEach(function(article, index) {
@@ -157,6 +181,7 @@ function processArticleData(articles, needSubtitle, callback) {
 
         var authorId = article.author;
         var users = db.get('users');
+
 
         if (needSubtitle && !article.subtitle) {
             article.subtitle = extractSubtitle(article.content);
@@ -174,16 +199,38 @@ function processArticleData(articles, needSubtitle, callback) {
 
             // 如果已经循环完毕了
             if (count == articles.length) {
-                callback(articles);
+                isAuthorComplete = true;
+                if (isCollComplete) {
+                    callback(articles);
+                }
             }
-        })
+        });
+
+        if (article.collections && article.collections.length > 0) {
+            collections.findById(article.collections[0], function(err, collection) {
+                counter++;
+                if (err) {
+
+                } else {
+                    article.collection = collection;
+                    collection.isFollowing = user &&
+                        user.collFollowing &&
+                        include(user.collFollowing, collection._id.toString());
+                    console.log('collection found for article: ');
+                    console.log(collection);
+                }
+
+                findCollCallback();
+            });
+        } else {
+            counter++;
+            findCollCallback();
+        }
     });
 }
 
 router.get('/article/:articleId', function(req, res) {
     var articleId = req.param('articleId');
-
-    console.log('why request twice?');
 
     console.log('articleId: ');
     console.log(articleId);
@@ -195,7 +242,7 @@ router.get('/article/:articleId', function(req, res) {
             console.log('found article:');
             console.log(article);
 
-            processArticleData([ article ], false, function(articleArr) {
+            processArticleData([ article ], false, req.user, function(articleArr) {
                 var newArticle = articleArr && articleArr[0];
 
                 if (!newArticle) {
@@ -333,7 +380,7 @@ router.get('/home/:uid', function(req, res) {
                     console.log('user articles: ');
                     console.log(docs);
 
-                    processArticleData(docs, true, function(newDocs) {
+                    processArticleData(docs, true, null, function(newDocs) {
                         collections.find({ creator: collections.id(uid) }, { limit: 4 }, function(err, colls) {
                             if (err) {
                                 console.log(err);
@@ -346,7 +393,7 @@ router.get('/home/:uid', function(req, res) {
                                             console.log(err);
                                             res.send(err);
                                         } else {
-                                            processArticleData(arts, false, function(newArts) {
+                                            processArticleData(arts, false, req.user, function(newArts) {
                                                 // todo 要判断主人态，主人态要加编辑功能
                                                 res.render('home', {
                                                     title: "个人主页",
@@ -426,7 +473,7 @@ router.get('/collection/:collectionId', function(req, res) {
                 if (err) {
 
                 } else {
-                    processArticleData(arts, true, function(newArticles) {
+                    processArticleData(arts, true, null, function(newArticles) {
                         coll.articles = newArticles;
                         res.render('collection', {
                             title: '文集',
@@ -950,6 +997,24 @@ router.get('/follow_user', filter.authorize, function(req, res) {
     });
 
 
+});
+
+router.get('/writers', function(req, res) {
+    users.find({}, { limit: 10 }, function(err, writers) {
+        if (err) {
+            res.send(err);
+            return;
+        }
+
+        writers.forEach(function(writer, index) {
+            writer.isFollowing = req.user && include(req.user.userFollowing, writer._id.toString());
+        });
+
+        res.render('writers', {
+            users: writers,
+            user: req.user
+        });
+    });
 });
 
 module.exports = router;
