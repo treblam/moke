@@ -102,10 +102,13 @@ passport.deserializeUser(function(id, done) {
 router.get('/', function(req, res) {
     console.log('user: ');
     console.log(req.user);
+
     console.log('session: ');
     console.log(req.session);
     console.log(req.user != null);
-    res.render('index', { title: '首页', user: req.user });
+    // res.render('index', { title: '首页', user: req.user });
+
+    res.send('这个是首页');
 });
 
 // Get less css
