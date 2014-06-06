@@ -110,8 +110,6 @@ router.get('/', function(req, res) {
     console.log('test2');
     res.render('index', { title: '首页', user: req.user });
 
-
-    
 });
 
 // Get less css
