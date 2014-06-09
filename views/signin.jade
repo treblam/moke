@@ -18,13 +18,19 @@ block content
 
 block script
   script.
+    window.domain = 'moke.io';
+
     $('#qqLoginBtn').click(function(e) {
         // window.open('https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101093252&redirect_uri=http%3a%2f%2fmoke.com%2fuserhome&scope=get_user_info');
         window.open('/auth/qq');
     });
 
     window.onmessage = function(e) {
-        if (e.data === true) {
+        if (!/\/\/[a-z.]*moke\.io/.test(e.origin)) {
+            return;
+        }
+
+        if (e.data && e.data.isSuc === true) {
             window.location.href = '/read';
         } else {
             // do nothing.
