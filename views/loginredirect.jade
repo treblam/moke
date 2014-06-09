@@ -22,8 +22,7 @@ html
             var isSuc = gup('suc') == 1;
 
             if (window.opener) {
-                window.opener.postMessage({ isSuc: isSuc }, 'http://moke.io');
+                window.opener.postMessage({ isSuc: isSuc }, 'http://www.moke.io');
                 window.opener.focus();
             }
-
             window.close();

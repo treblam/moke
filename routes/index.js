@@ -18,7 +18,7 @@ var collections = db.get('collections');
 passport.use(new qqStrategy({
         clientID: '101093252',
         clientSecret: '4b7804cb290d2f71881a9e70a9df417c',
-        callbackURL: 'http://moke.io/auth/qq/callback'
+        callbackURL: 'http://www.moke.io/auth/qq/callback'
     },
     function(accessToken, refreshToken, profile, done) {
         console.log("accessToken: " + accessToken);
