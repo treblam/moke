@@ -3,22 +3,25 @@ block content
     .main-container
         h1.h1 作者
         ul.users
-            each user in users
+            each writer in users
                 li.user
 
-                    a.coll-link(href='/home/#{user._id}')
+                    a.coll-link(href='/home/#{writer._id}')
 
                         .user-header
                             div.user-logo
-                                img(src='#{user.avatar}', alt='头像')
-                            h1.username #{user.nickname}
+                                img(src='#{writer.avatar_l}', alt='头像')
+                            h1.nickname #{writer.nickname}
                             p.user-intro
-                                = user.intro ? user.intro : '这家伙很懒，什么都没留下。'
-                            .follow-wrapper
-                                if user.isFollowing
-                                    button.follow-btn.btn.btn-lg.btn-success(data-uid=user._id.toString()) 已订阅
-                                else
-                                    button.follow-btn.btn.btn-lg.btn-default(data-uid=user._id.toString()) 订阅
+                                = writer.intro ? writer.intro : '这家伙很懒，什么都没留下。'
+
+                            - var isMyself = user != null && user._id.toString() === writer._id.toString();
+                            if !isMyself
+                                .follow-wrapper
+                                    if writer.isFollowing
+                                        button.follow-btn.btn.btn-lg.btn-success(data-uid=writer._id.toString()) 已关注
+                                    else
+                                        button.follow-btn.btn.btn-lg.btn-default(data-uid=writer._id.toString()) 关注
 
 
 

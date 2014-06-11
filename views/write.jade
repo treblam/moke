@@ -13,7 +13,9 @@ block content
         h4#subtitle.editable.subtitle(data-placeholder='副标题', data-disable-toolbar='true', data-disable-return='true')
           != article ? article.subtitle : ''
       div#content.editable.content(data-placeholder='文章内容')
-        != article ? article.content : ''
+        //!= article ? article.content : ''
+        p
+          span(contenteditable='false') abc
     ul.buttons
       li
         button#delete-btn.btn.btn-default(type='button') 删除
@@ -32,22 +34,24 @@ block content
 block script
   script(src='/editor/js/medium-editor.js')
   script.
-    var titleEditor = new MediumEditor('#title');
+    var editors = new MediumEditor('.editable');
 
     var articleId = '#{article ? article._id : ''}';
 
     var uid = '#{user._id}';
 
-    var subtitleEditor = new MediumEditor('#subtitle');
-
-    var contentEditor = new MediumEditor('#content');
 
     var form = document.forms['article'];
 
+    var editables = $('.editable');
+
+    editables.get(0).focus();
+
     $('#submit-btn').click(function(e) {
-      var title = titleEditor.serialize().title.value.replace(/^<p>(.*)<\/p>/, '$1');
-      var subtitle = subtitleEditor.serialize().subtitle.value.replace(/^<p>(.*)<\/p>/, '$1');
-      var content = contentEditor.serialize().content.value;
+      var data = editors.serialize();
+      var title = data.title.value.replace(/^<p>(.*)<\/p>/, '$1');
+      var subtitle = data.subtitle.value.replace(/^<p>(.*)<\/p>/, '$1');
+      var content = data.content.value;
 
       console.log(title);
       console.log(subtitle);
@@ -70,13 +74,42 @@ block script
     }
 
     $('#delete-btn').click(function(e) {
-         $.ajax({
-            type: "DELETE",
-            url: "/article",
-            data: { articleId: articleId }
-         }).done(function( result ) {
-            if (result.status == 'success') {
-                window.location.href = '/home/' + uid;
-            }
-         });
-      });
+       $.ajax({
+          type: "DELETE",
+          url: "/article",
+          data: { articleId: articleId }
+       }).done(function( result ) {
+          if (result.status == 'success') {
+              window.location.href = '/home/' + uid;
+          }
+       });
+    });
+
+    $('.editable').focus(function(e) {
+        setEndOfContenteditable(this);
+    }).keydown(function(e) {
+        console.log('keydown,' + 'which: ' + e.which);
+        if (e.which == 229) {
+            console.log('ime keydown');
+        }
+    }).keypress(function(e) {
+        console.log('keypress');
+    });
+
+
+    function setEndOfContenteditable(contentEditableElement) {
+          var range,selection;
+          if(document.createRange) { //Firefox, Chrome, Opera, Safari, IE 9+
+              range = document.createRange();//Create a range (a range is a like the selection but invisible)
+              range.selectNodeContents(contentEditableElement);//Select the entire contents of the element with the range
+              range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+              selection = window.getSelection();//get the selection object (allows you to change selection)
+              selection.removeAllRanges();//remove any selections already made
+              selection.addRange(range);//make the range you have just created the visible selection
+          } else if(document.selection) { //IE 8 and lower
+              range = document.body.createTextRange();//Create a range (a range is a like the selection but invisible)
+              range.moveToElementText(contentEditableElement);//Select the entire contents of the element with the range
+              range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+              range.select();//Select the range (make it the visible selection
+          }
+      }

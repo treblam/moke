@@ -26,7 +26,7 @@ passport.use(new qqStrategy({
         console.log('profile: ');
         console.log(profile);
 
-        users.findOne({openId: profile.id}, function(err, user) {
+        /*users.findOne({openId: profile.id, provider: profile.provider}, function(err, user) {
             if (err) {
                 console.log('err is not null.');
                 console.log(err);
@@ -59,30 +59,49 @@ passport.use(new qqStrategy({
                 return done(err, user);
             }
 
-        });
+        });*/
 
-        /*users.findAndModify({
-            query: {openId: profile.provider + '_' + profile.id},
-            update: {
-                $setOnInsert: {
-                        openId: profile.provider + '_' + profile.id,
-                        nickname: profile._json.nickname,
-                        gender: profile._json.gender,
-                        avatar: profile.figureurl
-                    }
+        users.findAndModify(
+            {
+                openId: profile.id,
+                provider: profile.provider
+            },
+            {
+                $set: {
+                    avatar_s: profile._json.figureurl,
+                    avatar_m: profile._json.figureurl_1,
+                    avatar_l: profile._json.figureurl_2
                 },
-            new: true,
-            upsert: true
-        }, function(err, user) {
+                $unset: {
+                    avatar: ''
+                },
+                $setOnInsert: {
+                    openId: profile.id,
+                    provider: profile.provider,
+                    nickname: profile._json.nickname,
+                    gender: profile._json.gender,
+                    intro: '',
+                    collFollowing: [],
+                    userFollowing: [],
+                    interests: []
+                }
+            },
+            {
+                new: true,
+                upsert: true
+            },
+            function(err, user) {
+                if (err) {
+                    console.log('findAndModify user, error ocurred: ');
+                    console.log(err);
+                } else {
+                    console.log('Login, user is: ');
+                    console.log(user);
+                }
 
-            console.log(err);
-
-            return done(err, user);
-        });*/
-
-        /*User.findOrCreate({ qqId: profile.id }, function (err, user) {
-            return done(err, user);
-        });*/
+                return done(err, user);
+            }
+        );
     }
 ));
 
@@ -130,7 +149,8 @@ router.get('/read', filter.authorize, function(req, res) {
         {
             $or: [
                 { author: { $in: user.userFollowing } },
-                { collections: { $in: user.collFollowing } }
+                { collections: { $in: user.collFollowing } },
+                { recommends: { $in: user.userFollowing } }
             ]
         },
         { limit: 10, sort: [['_id', 'desc']] },
@@ -397,7 +417,8 @@ router.get('/home/:uid', function(req, res) {
                                                 // todo 要判断主人态，主人态要加编辑功能
                                                 res.render('home', {
                                                     title: "个人主页",
-                                                    user: user,
+                                                    user: req.user,
+                                                    targetUser: user,
                                                     articles: newDocs,
                                                     collections: newColls,
                                                     recommends: newArts
@@ -580,6 +601,7 @@ router.delete('/collection', filter.authorize, function(req, res) {
             status: 'fail',
             message: '文集id为空，无法删除'
         });
+        return;
     }
 
     collections.remove({ _id: collId }, function(err) {
@@ -1016,5 +1038,33 @@ router.get('/writers', function(req, res) {
         });
     });
 });
+
+router.put('/users/:uid', function(req, res) {
+    var uid = req.params['uid'];
+
+    var nickname = req.body.nickname;
+    var intro = req.body.intro;
+    // todo 对nickname做一些判空的处理
+
+    users.update({ _id: uid }, { $set: { nickname: nickname, intro: intro } }, function(err, count) {
+        if (err) {
+            res.json({
+                status: 'error',
+                message: err.toString()
+            });
+        } else if (count > 0) {
+            res.json({
+                status: 'success',
+                message: '修改成功'
+            });
+        } else {
+            res.json({
+                status: 'fail',
+                message: '未修改成功'
+            });
+        }
+    });
+
+})
 
 module.exports = router;

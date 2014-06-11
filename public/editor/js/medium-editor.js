@@ -1144,8 +1144,11 @@ if (typeof module === 'object') {
                     }
                 },
                 placeholderWrapper = function (e) {
-                    this.classList.remove('medium-editor-placeholder');
-                    if (e.type !== 'keypress') {
+                    var which = e.keyCode || e.which;
+                    if (!(e.type === 'keydown' && which != 229)) {
+                        this.classList.remove('medium-editor-placeholder');
+                    }
+                    if (e.type !== 'keypress' && e.type !== 'keydown') {
                         activatePlaceholder(this);
                     }
                 };
@@ -1153,6 +1156,7 @@ if (typeof module === 'object') {
                 activatePlaceholder(this.elements[i]);
                 this.elements[i].addEventListener('blur', placeholderWrapper);
                 this.elements[i].addEventListener('keypress', placeholderWrapper);
+                this.elements[i].addEventListener('keydown', placeholderWrapper);
             }
             return this;
         },

@@ -1,18 +1,28 @@
 extends layout
 
+block css
+  link(rel='stylesheet' href='/editor/css/medium-editor.css')
+  link(rel='stylesheet' href='/editor/css/themes/default.css')
+
 block content
   div.main-container
     header.user-header
       div.user-logo
-        img(src='#{user.avatar}', alt='头像')
-      h1.username #{user.nickname}
-      p.user-intro
-        = user.intro ? user.intro : '这家伙很懒，什么都没留下。'
-      .follow-wrapper
-        if user.isFollowing
-          button#subscribe-btn.btn.btn-lg.btn-success 已订阅
-        else
-          button#subscribe-btn.btn.btn-lg.btn-default 订阅
+        img(src='#{targetUser.avatar_l}', alt='头像')
+      h1#nickname.nickname.editable(data-placeholder='请输入昵称', data-disable-toolbar='true', data-disable-return='true') #{targetUser.nickname}
+      p#userIntro.user-intro.editable(data-placeholder='请介绍一下你自己', data-disable-toolbar='true', data-disable-return='true')
+        = targetUser.intro ? targetUser.intro : '这家伙很懒，什么都没留下。'
+      - var isMyself = user != null && targetUser != null && user._id.toString() === targetUser._id.toString()
+      if !isMyself
+        .follow-wrapper
+          if targetUser.isFollowing
+            button#subscribe-btn.btn.btn-lg.btn-success 已关注
+          else
+            button#subscribe-btn.btn.btn-lg.btn-default 关注
+      else
+        .edit-btns
+          button#cancel-btn.btn.btn-default.cancel-btn 取消
+          button#save-btn.btn.btn-success 保存
 
     div.user-section
       h3.section-title 他的文章
@@ -26,9 +36,9 @@ block content
               h4.subtitle
                 a(href='/article/#{article._id}')= article.subtitle
             section.article-info
-              a.avatar(href='#')
-                img(src='#{user.avatar}', alt='头像')
-              a(href='/home/#{user._id}')= user.nickname
+              a.avatar(href='#' onclick='return false;')
+                img(src='#{targetUser.avatar_s}', alt='头像')
+              a(href='/home/#{targetUser._id}')= targetUser.nickname
               if article.collection
                 | 发表在
                 a(href='/collection/#{article.collection._id}')= article.collection.name
@@ -107,7 +117,7 @@ block content
                     // <h4 class="subtitle"><a href="/article">我已经三个月零十七天没有吃肉了，我的三个哥哥和两个妹妹也是。捉襟见肘的生活使得母亲小心翼翼地避免谈到肉，但邻居家飘来的肉香引起了我们的注意。</a></h4>
                   section.article-info
                     a.avatar(href='/home/#{article.author._id}')
-                      img(src='#{article.author.avatar}', alt='作者')
+                      img(src='#{article.author.avatar_s}', alt='作者')
                     a(href='/home/#{article.author._id}')= article.author.nickname
                     if article.collection
                       | 发表在
@@ -116,10 +126,18 @@ block content
     a.home(href='/')
       img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
 
+    if isMyself
+      ul.buttons
+        li
+          button#edit-profile.btn.btn-default(type='button') 编辑个人资料
+        li
+          button#logout.btn.btn-default(type='button') 退出
+
 
 block script
+    script(src='/editor/js/medium-editor.js')
     script.
-        var uid = '#{user._id}';
+        var uid = '#{targetUser._id}';
         var followBtn = $('#subscribe-btn');
 
         followBtn.click(function(e) {
@@ -178,3 +196,116 @@ block script
                 alert('操作失败');
             })
         });
+
+        $('#logout').click(function(e) {
+            window.location.href = '/logout';
+        });
+
+        function toEnd(el) {
+            var len = el.innerHTML.length || 0;
+            console.log(len);
+            if (len) {
+                if ('setSelectionRange' in el) el.setSelectionRange(len, len);
+                else if ('createTextRange' in el) {// for IE
+                    var range = el.createTextRange();
+                    range.moveStart('character', len);
+                    range.select();
+                }
+            }
+        }
+
+        var isEditorInited = false;
+        var editors;
+        var editBtns = $('.edit-btns');
+        var INTRO_DEFAULT = '这家伙很懒，什么都没留下。';
+        var userIntro = $('.user-intro');
+        var nickname = $('.nickname');
+
+        $('#edit-profile').click(function(e) {
+            if (editBtns.is(':visible')) {
+                cancelEdit();
+            } else {
+                if (userIntro.text() == INTRO_DEFAULT) {
+                    userIntro.text('');
+                }
+                if (!isEditorInited) {
+                    editors = new MediumEditor('.editable');
+                    isEditorInited = true;
+                } else {
+                    editors.activate();
+                }
+
+                nickname.focus();
+
+                $('html, body').animate({ scrollTop: 0 }, function() {
+                    editBtns.fadeIn();
+                });
+            }
+        });
+
+        $('.editable').focus(function(e) {
+            setEndOfContenteditable(this)
+        });
+
+        function cancelEdit() {
+            editors.deactivate();
+            editBtns.fadeOut();
+        }
+
+        $('#cancel-btn').click(function(e) {
+            cancelEdit();
+        });
+
+        $('#save-btn').click(function(e) {
+            var values = editors.serialize();
+            console.log(values);
+
+            $.ajax({
+                url: '/users/' + uid,
+                method: 'PUT',
+                data: {
+                    nickname: values.nickname.value,
+                    intro: values.userIntro.value
+                }
+            }).done(function(data) {
+                if (data.status == 'success') {
+                    editors.deactivate();
+                    editBtns.fadeOut();
+                } else {
+                    alert(data.message);
+                }
+            }).fail(function(jqXHR, textStatus, error) {
+                alert(textStatus);
+            });
+        });
+
+        nickname.keyup(function(e) {
+            var key = e.which;
+            if (key === 13) {
+                userIntro.focus();
+            }
+        });
+
+        userIntro.keyup(function(e) {
+            var key = e.which;
+            if (key === 13) {
+                $('#save-btn').click();
+            }
+        });
+
+        function setEndOfContenteditable(contentEditableElement) {
+            var range,selection;
+            if(document.createRange) { //Firefox, Chrome, Opera, Safari, IE 9+
+                range = document.createRange();//Create a range (a range is a like the selection but invisible)
+                range.selectNodeContents(contentEditableElement);//Select the entire contents of the element with the range
+                range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+                selection = window.getSelection();//get the selection object (allows you to change selection)
+                selection.removeAllRanges();//remove any selections already made
+                selection.addRange(range);//make the range you have just created the visible selection
+            } else if(document.selection) { //IE 8 and lower
+                range = document.body.createTextRange();//Create a range (a range is a like the selection but invisible)
+                range.moveToElementText(contentEditableElement);//Select the entire contents of the element with the range
+                range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+                range.select();//Select the range (make it the visible selection
+            }
+        }

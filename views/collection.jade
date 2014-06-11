@@ -24,10 +24,10 @@ block content
                     a(href='/article/#{article._id}') #{article.subtitle}
                 section.article-info
                   a.avatar(href='/home/#{article.author._id}')
-                    img(src='#{article.author.avatar}', alt='作者')
+                    img(src='#{article.author.avatar_s}', alt='作者')
                   a(href='/home/#{article.author._id}')= article.author.nickname
                   | 发表在
-                  a(href='#')= collection.name
+                  a(href='/collection/#{collection._id}', onclick='return false;')= collection.name
 
     ul.buttons
       li

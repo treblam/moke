@@ -5,6 +5,17 @@ block css
     link(rel='stylesheet' href='/editor/css/themes/default.css')
 
 block content
+    style(type='text/css').
+      .editable {
+        position: relative;
+      }
+      .editable .default-text {
+        color: grey;
+        //position:absolute;
+        left:5px;
+        top:0;
+        background: transparent;
+      }
     .main-container
         header.collection-header
             h2#name.editable(data-placeholder='文集标题', data-disable-toolbar='true')
@@ -47,6 +58,10 @@ block script
             form.submit();
         });
 
+        $('.editable').focus(function(e) {
+            setEndOfContenteditable(this);
+        }).get(0).focus();
+
         $('#cancel-btn').click(function(e) {
             window.location.href = '/collections';
         });
@@ -62,3 +77,57 @@ block script
                 }
             });
         });
+
+        function setEndOfContenteditable(contentEditableElement) {
+            var range,selection;
+            if(document.createRange) { //Firefox, Chrome, Opera, Safari, IE 9+
+                range = document.createRange();//Create a range (a range is a like the selection but invisible)
+                range.selectNodeContents(contentEditableElement);//Select the entire contents of the element with the range
+                range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+                selection = window.getSelection();//get the selection object (allows you to change selection)
+                selection.removeAllRanges();//remove any selections already made
+                selection.addRange(range);//make the range you have just created the visible selection
+            } else if(document.selection) { //IE 8 and lower
+                range = document.body.createTextRange();//Create a range (a range is a like the selection but invisible)
+                range.moveToElementText(contentEditableElement);//Select the entire contents of the element with the range
+                range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
+                range.select();//Select the range (make it the visible selection
+            }
+        }
+
+        /* $('#name').keypress(function(e) {
+            console.log('keypressed');
+        });
+
+        $('#name').on('paste keypress', function(e) {
+            //console.log('keypress');
+            //console.log(e);
+            //console.log(this.childNodes[0].nodeValue);
+            //$(this).find('.default-text').hide();
+        });
+
+        $('#name').on('keyup', function(e) {
+            console.log('keyup');
+        })
+
+        $('#name').on('keydown', function(e) {
+            console.log('keydown');
+            console.log(isCharacterKeyPress(e));
+            if (isCharacterKeyPress(e)) {
+                $(this).find('.default-text').hide();
+            }
+
+        })
+
+        function isCharacterKeyPress(evt) {
+            if (typeof evt.which == "undefined") {
+                // This is IE, which only fires keypress events for printable keys
+                return true;
+            } else if (typeof evt.which == "number" && evt.which > 0) {
+                // In other browsers except old versions of WebKit, evt.which is
+                // only greater than zero if the keypress is a printable key.
+                // We need to filter out backspace and ctrl/alt/meta key combinations
+                return !evt.ctrlKey && !evt.metaKey && !evt.altKey && evt.which != 8;
+            }
+            return false;
+        } */

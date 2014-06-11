@@ -255,6 +255,7 @@
 .user-header {
     text-align: center;
     padding: 20px 0;
+    position: relative;
 }
 
 .user-header .user-logo {
@@ -272,7 +273,7 @@
     border-radius: 100%;
 }
 
-.user-header .username {
+.user-header .nickname {
     font-weight: bold;
 }
 
@@ -291,12 +292,23 @@
     font-size: 14px;
     color: #808080;
     margin: 10px 0 30px;
-    margin-bottom: 30px;
     font-weight: bold;
 }
 
 .user-recommended .article .title {
     font-size: 18px;
+}
+
+.edit-btns .cancel-btn {
+    margin-right: 15px;
+}
+
+.edit-btns {
+    position: absolute;
+    left: 0;
+    bottom: -20px;
+    width: 100%;
+    display: none;
 }
 
 /*------登录注册-----*/
@@ -490,6 +502,8 @@ html, body {
 .user {
     display: inline-block;
     width: 300px;
+    height: 338px;
+    overflow: hidden;
     margin: 15px 10px;
     border: 1px solid #d0d0d0;
     border-radius: 3px;
@@ -507,7 +521,7 @@ html, body {
     overflow: hidden;
 }
 
-.user .user-header .username {
+.user .user-header .nickname {
     height: 39px;
     overflow: hidden;
 }

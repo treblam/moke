@@ -14,7 +14,7 @@ block content
                     a(href='/article/#{article._id}') #{article.subtitle}
                 section.article-info
                   a.avatar(href='/home/#{article.author._id}')
-                    img(src='#{article.author.avatar}', alt='作者')
+                    img(src='#{article.author.avatar_s}', alt='作者')
                   a(href='/home/#{article.author._id}')= article.author.nickname
                   if article.collection
                     | 发表在

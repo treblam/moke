@@ -37,18 +37,20 @@ block content
           - var author = article.author;
           .media
             a.pull-left.author-avatar(href='/home/#{author._id}')
-                img.media-object(src='#{author.avatar}', alt='头像')
+                img.media-object(src='#{author.avatar_m}', alt='头像')
             .media-body
                 h4.media-heading
                   a(href='/home/#{author._id}')= author.nickname
                 //= article.author.intro
                 = author.intro ? author.intro : '这家伙很懒，什么都没留下。'
 
-                .follow-wrapper
-                  if author.isFollowing
-                    button#user-follow-btn.btn.btn-sm.btn-success 已订阅
-                  else
-                    button#user-follow-btn.btn.btn-sm.btn-default 订阅
+                - var isMyself = author != null && user != null && author._id.toString() === user._id.toString();
+                if !isMyself
+                  .follow-wrapper
+                    if author.isFollowing
+                      button#user-follow-btn.btn.btn-sm.btn-success 已关注
+                    else
+                      button#user-follow-btn.btn.btn-sm.btn-default 关注
 
         if article.collection
             div.col-lg-6.info-card.collection-info
