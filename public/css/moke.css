@@ -1,5 +1,7 @@
 /*全站公用的css*/
-
+body {
+    font-family: "Lucida Grande","Lucida Sans Unicode", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
+}
 /*-------首页--------*/
 
 .index-section {
