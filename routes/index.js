@@ -1065,6 +1065,53 @@ router.put('/users/:uid', function(req, res) {
         }
     });
 
-})
+});
+
+router.get('/myreads', function(req, res) {
+    var user = req.user;
+    var pageNum = req.query['page'];
+
+    if (!user) {
+        res.json({
+            status: 'fail',
+            message: '请登录'
+        });
+
+        return;
+    }
+
+    articles.find(
+        {
+            $or: [
+                { author: { $in: user.userFollowing } },
+                { collections: { $in: user.collFollowing } },
+                { recommends: { $in: user.userFollowing } }
+            ]
+        },
+        { limit: 10, skip: 10*(pageNum - 1), sort: [['_id', 'desc']] },
+        function(err, articles) {
+            if (err) {
+                res.json({
+                    status: 'error',
+                    message: err.toString()
+                });
+            } else {
+                processArticleData(articles, true, null, function(arts) {
+                    /*res.render('read', {
+                        title: "杂志",
+                        articles: arts,
+                        user: req.user
+                    });*/
+
+                    res.json({
+                        status: 'success',
+                        message: '成功',
+                        data: arts
+                    });
+                });
+            }
+        }
+    );
+});
 
 module.exports = router;

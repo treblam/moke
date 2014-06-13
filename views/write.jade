@@ -82,6 +82,7 @@ block script
        });
     });
 
+    //todo  for test, will remove.
     $('.editable').focus(function(e) {
         // setEndOfContenteditable(this);
     }).keydown(function(e) {
@@ -93,15 +94,12 @@ block script
         console.log('keypress');
     }).mousedown(function(e) {
         //e.preventDefault();
-
-
     }).click(function(e) {
         //e.preventDefault();
     }).keyup(function(e) {
         // e.preventDefault();
         console.log('keyup, which: ' + e.which);
     });
-
 
     function setEndOfContenteditable(contentEditableElement) {
           var range,selection;
@@ -118,4 +116,4 @@ block script
               range.collapse(false);//collapse the range to the end point. false means collapse to end rather than the start
               range.select();//Select the range (make it the visible selection
           }
-      }
+    }

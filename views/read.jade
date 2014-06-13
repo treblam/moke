@@ -3,22 +3,7 @@ extends layout
 block content
   .main-container
     if articles && articles.length > 0
-        each article in articles
-            article.article
-              header
-                // <div class="collection"><a href="#">月过女墙</a></div>
-                hgroup
-                  h3.title
-                    a(href='/article/#{article._id}') #{article.title}
-                  h4.subtitle
-                    a(href='/article/#{article._id}') #{article.subtitle}
-                section.article-info
-                  a.avatar(href='/home/#{article.author._id}')
-                    img(src='#{article.author.avatar_s}', alt='作者')
-                  a(href='/home/#{article.author._id}')= article.author.nickname
-                  if article.collection
-                    | 发表在
-                    a(href='/collection/#{article.collection._id}')= article.collection.name
+      include cs_share/myreads
     else
       .empty-instruct
         | 还没有内容可供阅读，快去订阅你喜欢的
@@ -26,3 +11,47 @@ block content
         |和
         a(href='/collections') 文集
         |吧
+
+
+block script
+    script(type='text/javascript', src='/js/runtime.js')
+    script(type='text/javascript', src='/views/myreads.js')
+
+    script.
+        var page = 2;
+        var hasMore = true;
+        var isLoading = false;
+        function loadMoreContent() {
+            isLoading = true;
+            $.ajax({
+                url: '/myreads',
+                data: {
+                    page: page
+                }
+            }).done(function(data) {
+                if (data.status === 'success') {
+                    hasMore = data.data.length == 10;
+                    if (hasMore) {
+                        page++;
+                    }
+                    console.log(data.data);
+                    var html = template({articles: data.data});
+                    console.log(html);
+                    $('.main-container').append(html);
+                } else {
+                    alert(data.message);
+                }
+                isLoading = false;
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                alert(textStatus);
+                isLoading = false;
+            });
+        }
+
+        $(window).scroll(function(){
+            if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300){
+                if (!isLoading && hasMore) {
+                    loadMoreContent();
+                }
+            }
+        });

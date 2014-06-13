@@ -1,0 +1,16 @@
+each article in articles
+    article.article
+        header
+            // <div class="collection"><a href="#">月过女墙</a></div>
+            hgroup
+                h3.title
+                    a(href='/article/#{article._id}') #{article.title}
+                h4.subtitle
+                    a(href='/article/#{article._id}') #{article.subtitle}
+            section.article-info
+                a.avatar(href='/home/#{article.author._id}')
+                    img(src='#{article.author.avatar_s}', alt='作者')
+                a(href='/home/#{article.author._id}')= article.author.nickname
+                if article.collection
+                    | 发表在
+                    a(href='/collection/#{article.collection._id}')= article.collection.name
