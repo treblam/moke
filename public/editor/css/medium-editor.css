@@ -160,9 +160,9 @@
 
 .medium-editor-placeholder {
   position: relative; }
-  .medium-editor-placeholder:after {
+  /*.medium-editor-placeholder:after {
     position: absolute;
     top: 0;
     left: 0;
     content: attr(data-placeholder);
-    /*font-style: italic;*/ }
+    *//*font-style: italic;*//* }*/

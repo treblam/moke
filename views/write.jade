@@ -13,9 +13,7 @@ block content
         h4#subtitle.editable.subtitle(data-placeholder='副标题', data-disable-toolbar='true', data-disable-return='true')
           != article ? article.subtitle : ''
       div#content.editable.content(data-placeholder='文章内容')
-        //!= article ? article.content : ''
-        p
-          span(contenteditable='false') abc
+        != article ? article.content : ''
     ul.buttons
       li
         button#delete-btn.btn.btn-default(type='button') 删除
@@ -39,7 +37,6 @@ block script
     var articleId = '#{article ? article._id : ''}';
 
     var uid = '#{user._id}';
-
 
     var form = document.forms['article'];
 
@@ -86,7 +83,7 @@ block script
     });
 
     $('.editable').focus(function(e) {
-        setEndOfContenteditable(this);
+        // setEndOfContenteditable(this);
     }).keydown(function(e) {
         console.log('keydown,' + 'which: ' + e.which);
         if (e.which == 229) {
@@ -94,6 +91,16 @@ block script
         }
     }).keypress(function(e) {
         console.log('keypress');
+    }).mousedown(function(e) {
+        //e.preventDefault();
+
+
+    }).click(function(e) {
+        //e.preventDefault();
+    }).keyup(function(e) {
+        // e.preventDefault();
+
+        console.log('keyup, which: ' + e.which);
     });
 
 

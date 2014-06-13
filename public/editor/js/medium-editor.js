@@ -85,6 +85,35 @@ if (typeof module === 'object') {
         return html;
     }
 
+    // http://stackoverflow.com/questions/1125292/how-to-move-cursor-to-end-of-contenteditable-entity
+    // by Nico Burns
+    // param position:  true left, false right.
+    function setCursorPosition(el, position) {
+        var range,selection,ps,node;
+
+        ps = el.getElementsByTagName('p');
+        if (ps.length > 0) {
+            node = ps[position ? 0 : ps.length - 1];
+        } else {
+            node = el;
+        }
+
+        if(document.createRange) { //Firefox, Chrome, Opera, Safari, IE 9+
+            range = document.createRange();//Create a range (a range is a like the selection but invisible)
+
+            range.selectNodeContents(node);//Select the entire contents of the element with the range
+            range.collapse(position);//collapse the range to the end point. false means collapse to end rather than the start
+            selection = window.getSelection();//get the selection object (allows you to change selection)
+            selection.removeAllRanges();//remove any selections already made
+            selection.addRange(range);//make the range you have just created the visible selection
+        } else if(document.selection) { //IE 8 and lower
+            range = document.body.createTextRange();//Create a range (a range is a like the selection but invisible)
+            range.moveToElementText(node);//Select the entire contents of the element with the range
+            range.collapse(position);//collapse the range to the end point. false means collapse to end rather than the start
+            range.select();//Select the range (make it the visible selection
+        }
+    }
+
     // https://github.com/jashkenas/underscore
     function isElement(obj) {
         return !!(obj && obj.nodeType === 1);
@@ -184,11 +213,20 @@ if (typeof module === 'object') {
         serialize: function () {
             var i,
                 elementid,
-                content = {};
+                content = {},
+                value,
+                holderExp = /<span\s.*class="medium-editor-placeholder"(?:\s.+)?>.*<\/span>/m;
             for (i = 0; i < this.elements.length; i += 1) {
                 elementid = (this.elements[i].id !== '') ? this.elements[i].id : 'element-' + i;
+                value = this.elements[i].innerHTML.trim();
+                if (holderExp.test(value)) { // if there if placeholder, make it empty.
+                    value = '';
+                } else if (this.options.disableReturn || this.elements[i].getAttribute('data-disable-return')) {
+                    // if return is disabled, remove the html markups.
+                    value = value.replace(/^<p>(.*)<\/p>$/, '$1');
+                }
                 content[elementid] = {
-                    value: this.elements[i].innerHTML.trim()
+                    value: value
                 };
             }
             return content;
@@ -1140,23 +1178,78 @@ if (typeof module === 'object') {
                 activatePlaceholder = function (el) {
                     if (!(el.querySelector('img')) &&
                             el.textContent.replace(/^\s+|\s+$/g, '') === '') {
-                        el.classList.add('medium-editor-placeholder');
+
+                        el.innerHTML = '';
+                        var p = document.createElement('p');
+                        var placeholder = document.createElement('span');
+                        placeholder.innerHTML = el.getAttribute('data-placeholder');
+                        placeholder.className = 'medium-editor-placeholder';
+                        placeholder.setAttribute('contenteditable', 'false');
+                        p.appendChild(placeholder);
+                        el.appendChild(p);
+                        el.setAttribute('data-isempty', 'true');
+                        return true;
+                    }
+                },
+                clearPlaceholder = function(el) {
+                    var placeholder = el.querySelector('.medium-editor-placeholder');
+                    if (placeholder) {
+                        placeholder.parentNode.removeChild(placeholder);
+                        el.setAttribute('data-isempty', 'false');
                     }
                 },
                 placeholderWrapper = function (e) {
-                    var which = e.keyCode || e.which;
-                    if (!(e.type === 'keydown' && which != 229)) {
-                        this.classList.remove('medium-editor-placeholder');
-                    }
-                    if (e.type !== 'keypress' && e.type !== 'keydown') {
+                    clearPlaceholder(this);
+                    if (e.type === 'blur') {
                         activatePlaceholder(this);
+                    }
+                },
+                keydownHandler = function(e) {
+                    var which = e.keyCode || e.which;
+                    if (which === 229 || which >= 65 && which <= 90) {
+                        clearPlaceholder(this);
+                    }
+                    if (this.getAttribute('data-isempty') == 'true' && (which >= 37 && which <= 40 || which === 8 || which === 46)) {
+                        e.preventDefault();
+                    }
+                },
+                mousedownHandler = function(e) {
+                    if (document.activeElement != this) {
+                        this.setAttribute('data-mousedown', 'true');
+                    }
+
+                    if (this.getAttribute('data-isempty') === 'true') {
+                        e.preventDefault();
+                        this.focus();
+                    }
+                },
+                focusHandler = function(e) {
+                    var isEmpty = this.getAttribute('data-isempty') === 'true';
+                    var isClick = this.getAttribute('data-mousedown') === 'true';
+                    if (isClick) {
+                        this.removeAttribute('data-mousedown');
+                        if (!isEmpty) return;
+                    }
+
+                    setCursorPosition(this, isEmpty);
+                    e.preventDefault();
+                },
+                keyupHandler = function(e) {
+                    var which = e.keyCode || e.which;
+                    if (which === 8 || which === 46) {
+                        if (activatePlaceholder(this)) {
+                            setCursorPosition(this, true);
+                        }
                     }
                 };
             for (i = 0; i < this.elements.length; i += 1) {
                 activatePlaceholder(this.elements[i]);
                 this.elements[i].addEventListener('blur', placeholderWrapper);
                 this.elements[i].addEventListener('keypress', placeholderWrapper);
-                this.elements[i].addEventListener('keydown', placeholderWrapper);
+                this.elements[i].addEventListener('keydown', keydownHandler);
+                this.elements[i].addEventListener('mousedown', mousedownHandler);
+                this.elements[i].addEventListener('focus', focusHandler);
+                this.elements[i].addEventListener('keyup', keyupHandler);
             }
             return this;
         },

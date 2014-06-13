@@ -527,9 +527,9 @@ html, body {
 }
 
 /*----------编辑器的css调整---------*/
-.medium-editor-placeholder:after {
+/*.medium-editor-placeholder:after {
     width: 100%;
-}
+}*/
 
 /*------------选择文章------------*/
 .choose-articles {
