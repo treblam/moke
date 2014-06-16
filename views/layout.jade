@@ -23,8 +23,13 @@ html
 
     // link(rel='stylesheet', href='/stylesheets/style.css')
   body
-    block content
+    script.
+      var isWindows = navigator.platform.toUpperCase().indexOf('WIN') !== -1;
+      if (isWindows) {
+          document.body.className += ' win';
+      }
 
+    block content
     a#menu-btn.home(href='/')
       img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
 

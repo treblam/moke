@@ -2,11 +2,14 @@
 body {
     font-family: "Lucida Grande","Lucida Sans Unicode", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
     color: #666;
-    letter-spacing: 3px;
 }
 
 a, a:active, a:focus {
     outline: 0;
+}
+
+.win {
+    letter-spacing: 1px;
 }
 /*-------首页--------*/
 
@@ -229,7 +232,7 @@ a, a:active, a:focus {
 }
 
 .author-info .media-heading a {
-    color: #000000;
+    color: #333;
 }
 
 .author-info .media-body {
@@ -250,7 +253,7 @@ a, a:active, a:focus {
 }
 
 .collection-body .collection-title a {
-    color: #000000;
+    color: #333;
 }
 
 .collection-info .follow-wrapper {
@@ -434,11 +437,13 @@ html, body {
 .collection-header h2 {
     font-size: 50px;
     font-weight: bold;
+    color: #333;
 }
 
 .collection-header .intro {
     font-size: 18px;
     margin-bottom: 20px;
+    color: #808080;
 }
 
 .article-list {
@@ -453,7 +458,7 @@ html, body {
 }
 
 .collection a {
-    color: #000000;
+    color: #333;
     text-decoration: none;
 }
 
