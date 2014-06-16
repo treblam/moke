@@ -148,7 +148,8 @@ router.get('/read', function(req, res) {
         query = {};
         console.log(2);
     } else {
-        var following = user.userFollowing.push(user._id); // 把自己算进去
+        var following = user.userFollowing;
+        following.push(user._id); // 把自己算进去
         query = {
             $or: [
                 { author: { $in: following } },
