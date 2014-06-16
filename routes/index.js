@@ -142,8 +142,11 @@ router.get('/read', function(req, res) {
     var user = req.user;
     var query;
 
+    console.log(1);
+
     if (user == null) {
         query = {};
+        console.log(2);
     } else {
         var following = user.userFollowing.push(user._id); // 把自己算进去
         query = {
@@ -153,15 +156,19 @@ router.get('/read', function(req, res) {
                 { recommends: { $in: following } }
             ]
         }
+        console.log(2);
     }
 
     articles.find(query,
         { limit: 10, sort: [['_id', 'desc']] },
         function(err, articles) {
             if (err) {
-
+                console.log(3);
+                console.log(err);
             } else {
+                console.log(4);
                 processArticleData(articles, true, null, function(arts) {
+                    console.log(5);
                     res.render('read', {
                         title: "杂志",
                         articles: arts,
