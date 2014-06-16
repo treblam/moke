@@ -195,6 +195,7 @@ function processArticleData(articles, needSubtitle, user, callback) {
 
             if (isAuthorComplete) {
                 callback(articles);
+                console.log('findCollCallback, callback called.')
             }
         }
     }
@@ -206,6 +207,7 @@ function processArticleData(articles, needSubtitle, user, callback) {
 
             if (isCollComplete) {
                 callback(articles);
+                console.log('findAuthorCallback, callback called.')
             }
         }
     }
@@ -216,6 +218,8 @@ function processArticleData(articles, needSubtitle, user, callback) {
             counter++;
             findAuthorCallback();
             findCollCallback();
+
+            console.log('article is null, forEach function returned.');
             return;
         }
 
