@@ -10,9 +10,7 @@ var monk = require('monk');
 var db = monk('localhost:27017/moke');
 
 var users = db.get('users');
-
 var articles = db.get('articles');
-
 var collections = db.get('collections');
 
 passport.use(new qqStrategy({
@@ -142,11 +140,8 @@ router.get('/read', function(req, res) {
     var user = req.user;
     var query;
 
-    console.log(1);
-
     if (user == null) {
         query = {};
-        console.log(2);
     } else {
         var following = user.userFollowing;
         following.push(user._id); // 把自己算进去
@@ -157,19 +152,15 @@ router.get('/read', function(req, res) {
                 { recommends: { $in: following } }
             ]
         }
-        console.log(2);
     }
 
     articles.find(query,
         { limit: 10, sort: [['_id', 'desc']] },
         function(err, articles) {
             if (err) {
-                console.log(3);
                 console.log(err);
             } else {
-                console.log(4);
                 processArticleData(articles, true, null, function(arts) {
-                    console.log(5);
                     res.render('read', {
                         title: "杂志",
                         articles: arts,
@@ -203,7 +194,6 @@ function processArticleData(articles, needSubtitle, user, callback) {
 
             if (isAuthorComplete) {
                 callback(articles);
-                console.log('findCollCallback, callback called.')
             }
         }
     }
@@ -215,7 +205,6 @@ function processArticleData(articles, needSubtitle, user, callback) {
 
             if (isCollComplete) {
                 callback(articles);
-                console.log('findAuthorCallback, callback called.')
             }
         }
     }
@@ -226,8 +215,6 @@ function processArticleData(articles, needSubtitle, user, callback) {
             counter++;
             findAuthorCallback();
             findCollCallback();
-
-            console.log('article is null, forEach function returned.');
             return;
         }
 
@@ -279,11 +266,9 @@ router.get('/article/:articleId', function(req, res) {
 
     articles.findById(articleId, function(err, article) {
         if (err) {
-
+            console.log(err);
         } else {
-            console.log('found article:');
-            console.log(article);
-
+            console.log('found article.');
             processArticleData([ article ], false, req.user, function(articleArr) {
                 var newArticle = articleArr && articleArr[0];
 
@@ -293,8 +278,6 @@ router.get('/article/:articleId', function(req, res) {
                 }
 
                 newArticle.isRecommended = include(newArticle.recommends, req.user && req.user._id.toString());
-
-                // newArticle.isFollowing =
 
                 res.render('article', {
                     article: newArticle,
@@ -310,23 +293,20 @@ router.delete('/article', function(req, res) {
 
     articles.remove({_id: articles.id(articleId)}, function(err) {
         if (err) {
-            // res.send(err);
+            console.log('remove error: ');
+            console.log(err);
+            res.json({
+                status: 'error',
+                message: err.toString()
+            });
+        } else {
+            res.json({
+                status: 'success',
+                data: null
+            });
         }
-
-        // res.redirect('/home/' + req.user._id);
-
-        console.log('articleId: ');
+        console.log('remove articleId: ');
         console.log(articleId);
-
-        console.log('remove article err:');
-        console.log(err);
-
-        articles.findById(articleId, function(err, article) {
-            console.log('article after remove: ');
-            console.log(article);
-        })
-
-        res.json({ status: 'success', data: null });
     });
 });
 
@@ -423,11 +403,10 @@ router.get('/home/:uid', function(req, res) {
 
             articles.find({ author: articles.id(uid) }, { limit: 4 }, function(err, docs) {
                 if (err) {
-
+                    console.log('find articles by author error: ');
+                    console.log(err);
                 } else {
-                    console.log('user articles: ');
-                    console.log(docs);
-
+                    console.log('find articles by author success.');
                     processArticleData(docs, true, null, function(newDocs) {
                         collections.find({ creator: collections.id(uid) }, { limit: 4 }, function(err, colls) {
                             if (err) {
@@ -517,7 +496,7 @@ router.get('/collection/:collectionId', function(req, res) {
             var user = req.user;
             coll.isFollowing = user && user.collFollowing && include(user.collFollowing, collId);
 
-            // 根据文集的id来找文章，todo: 这样写可以吗
+            // 根据文集的id来找文章
             articles.find({collections: collections.id(collId)}, function(err, arts) {
                 if (err) {
 
@@ -795,8 +774,7 @@ router.get('/myarticles', function(req, res) {
             articles: articles,
             collId: collId
         }, function(err, html) {
-            console.log('get my articles html: ');
-            console.log(html);
+            console.log('get my articles html.');
             res.json({
                 status: 'success',
                 data: {
