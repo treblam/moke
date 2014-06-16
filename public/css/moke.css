@@ -2,6 +2,10 @@
 body {
     font-family: "Lucida Grande","Lucida Sans Unicode", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
 }
+
+a, a:active, a:focus {
+    outline: 0;
+}
 /*-------首页--------*/
 
 .index-section {
@@ -25,10 +29,8 @@ body {
 }
 
 .index-introduction p a {
-
     margin-right: 20px;
     font-size: 18px;
-
     border-bottom: 3px solid #d0d0d0;
     color: #000000;
     text-decoration: none;
@@ -413,6 +415,9 @@ html, body {
 
 .menu-items .avatar {
     margin-right: 10px;
+    border-radius: 100%;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
 }
 
 .menu-items a {
