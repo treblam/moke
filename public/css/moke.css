@@ -8,7 +8,7 @@ a, a:active, a:focus {
     outline: 0;
 }
 
-.win {
+.win body {
     letter-spacing: 1px;
 }
 /*-------首页--------*/

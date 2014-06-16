@@ -13,6 +13,14 @@ html
 
     block css
 
+    script.
+        var isWindows = navigator.platform.toUpperCase().indexOf('WIN') !== -1;
+        if (isWindows) {
+            var html = document.getElementsByTagName('html')[0];
+            if (html) {
+                html.className += ' win';
+            }
+        }
     //
       HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries
     //
@@ -23,11 +31,6 @@ html
 
     // link(rel='stylesheet', href='/stylesheets/style.css')
   body
-    script.
-      var isWindows = navigator.platform.toUpperCase().indexOf('WIN') !== -1;
-      if (isWindows) {
-          document.body.className += ' win';
-      }
 
     block content
     a#menu-btn.home(href='/')
