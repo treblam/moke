@@ -211,9 +211,6 @@ function processArticleData(articles, needSubtitle, user, callback) {
     }
 
     articles.forEach(function(article, index) {
-        console.log('forEach article: ');
-        console.log(article);
-
         if (!article) {
             count++;
             counter++;
@@ -236,8 +233,6 @@ function processArticleData(articles, needSubtitle, user, callback) {
             } else {
                 author.isFollowing = user && include(user.userFollowing, author._id.toString());
                 article.author = author;
-                console.log('author found:');
-                console.log(author);
             }
 
             findAuthorCallback();
@@ -253,8 +248,6 @@ function processArticleData(articles, needSubtitle, user, callback) {
                     collection.isFollowing = user &&
                         user.collFollowing &&
                         include(user.collFollowing, collection._id.toString());
-                    console.log('collection found for article: ');
-                    console.log(collection);
                 }
 
                 findCollCallback();
