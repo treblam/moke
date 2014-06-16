@@ -32,7 +32,7 @@ block content
     ul.buttons
       li
         button#contribute.btn.btn-default(type='button') 投稿
-      if user._id.str == collection.creator.str
+      if user && user._id.str == collection.creator.str
         li
           button#edit-btn.btn.btn-success(type='button') 编辑
 
@@ -52,17 +52,17 @@ block script
             var button = $(this);
             var isFollowing = button.is('.btn-success');
             var collId = button.data('collid');
-            var url;
+            var op;
 
             if (isFollowing) {
-                url = '/coll_unsubscribe';
+                op = '0';
             } else {
-                url = '/coll_subscribe';
+                op = '1';
             }
 
             $.ajax({
-                url: url,
-                data: {collId: collId}
+                url: '/subscribe_coll',
+                data: {collId: collId, op: op}
             }).done(function(data) {
                 if (data) {
                     if (data.status == 'success') {

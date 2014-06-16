@@ -25,29 +25,28 @@ html
   body
     block content
 
+    a#menu-btn.home(href='/')
+      img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
 
-
-    if user
-      a#menu-btn.home(href='/')
-        img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
-
-      nav#site-menu.site-menu
+    nav#site-menu.site-menu
         div.menu-wrapper
           ul.menu-items
             li
               a(href='/read') 首页
+            if user
                 li
                   a(href='/home/#{user._id}')
                     img.avatar(src='#{user.avatar_s}' alt='头像')
                     | #{user.nickname}
-                  li
-                    a(href='/write') 写作
-                  li
-                    a(href='/drafts') 草稿
-                  li
-                    a(href='/collections') 文集
-                  li
-                    a(href='/writers') 作者
+            li
+              a(href='/write') 写作
+            if user
+                li
+                  a(href='/drafts') 草稿
+            li
+              a(href='/collections') 文集
+            li
+              a(href='/writers') 作者
 
     script(type='text/javascript' src='/js/jquery-1.11.1.min.js')
     script(type='text/javascript' src='/js/bootstrap.min.js')

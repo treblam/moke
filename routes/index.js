@@ -140,19 +140,25 @@ router.get('/', function(req, res) {
     });
 });*/
 
-router.get('/read', filter.authorize, function(req, res) {
+router.get('/read', function(req, res) {
     var db = req.db;
     var articles = db.get('articles');
     var user = req.user;
+    var query;
 
-    articles.find(
-        {
+    if (user == null) {
+        query = {};
+    } else {
+        query = {
             $or: [
                 { author: { $in: user.userFollowing } },
                 { collections: { $in: user.collFollowing } },
                 { recommends: { $in: user.userFollowing } }
             ]
-        },
+        }
+    }
+
+    articles.find(query,
         { limit: 10, sort: [['_id', 'desc']] },
         function(err, articles) {
             if (err) {
@@ -487,7 +493,7 @@ router.get('/collection/:collectionId', function(req, res) {
                 return;
             }
             var user = req.user;
-            coll.isFollowing = user.collFollowing && include(user.collFollowing, collId);
+            coll.isFollowing = user && user.collFollowing && include(user.collFollowing, collId);
 
             // 根据文集的id来找文章，todo: 这样写可以吗
             articles.find({collections: collections.id(collId)}, function(err, arts) {
@@ -619,9 +625,10 @@ router.delete('/collection', filter.authorize, function(req, res) {
     });
 });
 
-router.get('/coll_subscribe', filter.authorize, function(req, res) {
+router.get('/subscribe_coll', filter.authorize, function(req, res) {
 
     var collId = req.query['collId'];
+    var op = req.query['op'];
 
     if (!collId) {
         res.json({
@@ -635,16 +642,24 @@ router.get('/coll_subscribe', filter.authorize, function(req, res) {
     console.log('subscribe collId: ');
     console.log(collId);
 
-    users.findAndModify({_id: req.user._id}, {
+    var replacement = op == 1 ?
+    {
         $addToSet: {
             collFollowing: users.id(collId)
         }
-    }, function(err, count) {
+    }
+        :
+    {
+        $pull: {
+            collFollowing: users.id(collId)
+        }
+    }
+
+    users.findAndModify({_id: req.user._id}, replacement, function(err, count) {
         if (err) {
             res.json({
                 status: 'error',
-                message: '订阅文集出错',
-                data: err
+                message: err.toString()
             });
 
             return;
@@ -659,16 +674,16 @@ router.get('/coll_subscribe', filter.authorize, function(req, res) {
         } else {
             res.json({
                 status: 'success',
-                message: '订阅成功',
+                message: '操作成功',
                 data: {
-                    isFollowing: true
+                    isFollowing: op == 1
                 }
             });
         }
     });
 });
 
-router.get('/coll_unsubscribe', filter.authorize, function(req, res) {
+/*router.get('/coll_unsubscribe', filter.authorize, function(req, res) {
     var collId = req.query['collId'];
 
     if (!collId) {
@@ -714,7 +729,7 @@ router.get('/coll_unsubscribe', filter.authorize, function(req, res) {
             });
         }
     });
-});
+});*/
 
 router.get('/auth/qq',
     passport.authenticate('qq', {scope: 'get_user_info'})
@@ -1070,24 +1085,27 @@ router.put('/users/:uid', function(req, res) {
 router.get('/myreads', function(req, res) {
     var user = req.user;
     var pageNum = req.query['page'];
+    var query;
 
     if (!user) {
-        res.json({
+        /*res.json({
             status: 'fail',
             message: '请登录'
-        });
+        });*/
 
-        return;
-    }
+        query = {};
 
-    articles.find(
-        {
+    } else {
+        query = {
             $or: [
                 { author: { $in: user.userFollowing } },
                 { collections: { $in: user.collFollowing } },
                 { recommends: { $in: user.userFollowing } }
             ]
-        },
+        };
+    }
+
+    articles.find(query,
         { limit: 10, skip: 10*(pageNum - 1), sort: [['_id', 'desc']] },
         function(err, articles) {
             if (err) {

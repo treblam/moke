@@ -68,16 +68,13 @@ block content
 
     script.
       console.log('user._id');
-      console.log('#{user._id.toString()}');
+      console.log('#{user ? user._id.toString() : ''}');
       console.log('article.author._id:');
       console.log('#{article.author._id.toString()}');
-    if user._id.toString() == article.author._id.toString()
+    if user && user._id.toString() == article.author._id.toString()
       ul.buttons
         li
           button#edit-btn.btn.btn-success(type='button') 编辑
-
-    a.home(href='/')
-      img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
 
 block script
   script.
@@ -144,16 +141,17 @@ block script
           var isFollowing = button.is('.btn-success');
           var collId = button.data('collid');
           var url;
+          var op;
 
           if (isFollowing) {
-              url = '/coll_unsubscribe';
+              op = '0';
           } else {
-              url = '/coll_subscribe';
+              op = '1';
           }
 
           $.ajax({
-              url: url,
-              data: {collId: collId}
+              url: '/subscribe_coll',
+              data: {collId: collId, op: op}
           }).done(function(data) {
               if (data) {
                   if (data.status == 'success') {

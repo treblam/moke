@@ -123,9 +123,6 @@ block content
                       | 发表在
                       a(href='/collection/#{article.collection._id}')= article.collection.name
 
-    a.home(href='/')
-      img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
-
     if isMyself
       ul.buttons
         li
@@ -167,17 +164,17 @@ block script
             var button = $(this);
             var isFollowing = button.is('.btn-success');
             var collId = button.data('collid');
-            var url;
+            var op;
 
             if (isFollowing) {
-                url = '/coll_unsubscribe';
+                op = '0';
             } else {
-                url = '/coll_subscribe';
+                op = '1';
             }
 
             $.ajax({
-                url: url,
-                data: {collId: collId}
+                url: '/subscribe_coll',
+                data: {collId: collId, op: op}
             }).done(function(data) {
                 if (data) {
                     if (data.status == 'success') {
