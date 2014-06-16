@@ -21,3 +21,124 @@ $(document).mouseup(function(e) {
         siteMenu.slideUp();
     }
 });
+
+
+var LoginUtil = {
+    isLogin: function() {
+
+    },
+    login: function() {
+        $('#login-modal').modal();
+    },
+    init: function() {
+        $(document).on('click', '#qq-login', function(e) {
+            window.open('/auth/qq');
+        });
+
+        $(window).on('message', function(e) {
+            if (/\/signin$/.test(window.location.href)) {
+                window.location.href = '/read';
+            } else {
+                window.location.reload();
+            }
+        });
+    }
+};
+
+LoginUtil.init();
+
+$(document).on('click', '.subscribe-coll', function(e) {
+    var button = $(this);
+    var isFollowing = button.is('.btn-success');
+    var collId = button.data('collid');
+
+    $.ajax({
+        url: '/subscribe_coll',
+        data: {collId: collId, op: isFollowing ? '0' : '1'}
+    }).done(function(data) {
+        if (data) {
+            if (data.status == 'success') {
+                if (data.data.isFollowing) {
+                    button.removeClass('btn-default').addClass('btn-success').text('已订阅');
+                } else {
+                    button.removeClass('btn-success').addClass('btn-default').text('订阅');
+                }
+            } else if (data.status == 'fail') {
+                switch (data.code) {
+                    case 1:
+                        LoginUtil.login();
+                        break;
+                }
+            } else {
+                alert(data.message);
+            }
+        } else {
+            alert('操作失败');
+        }
+    }).fail(function(jqXHR, statusText) {
+        alert('操作失败');
+    });
+}).on('click', '#create-collection', function(e) { // 创建文集
+    window.location.href = '/edit_collection';
+}).on('click', '.follow-user', function(e) {
+    e.preventDefault(); // 在作者列表页需要这个
+    e.stopPropagation();
+    var button = $(this);
+    var isFollowing = button.is('.btn-success');
+    var uid = button.data('uid');
+    $.ajax({
+        url: '/follow_user',
+        data: {
+            uid: uid,
+            op: isFollowing ? 0 : 1
+        }
+    }).success(function(data) {
+        if (data.status == 'success') {
+            if (data.data.isFollowing) {
+                button.removeClass('btn-default').addClass('btn-success');
+                button.text('已关注')
+            } else {
+                button.removeClass('btn-success').addClass('btn-default');
+                button.text('关注')
+            }
+        } else if (data.status == 'fail') {
+            switch (data.code) {
+                case 1:
+                    LoginUtil.login();
+                    break;
+            }
+        } else {
+            alert(data.message);
+        }
+    });
+}).on('click', '#recommend-article', function(e) {
+    // 根据class来判断要做何操作
+    var button = $(this);
+    var op = button.is('.btn-default') ? 1 : 0;
+
+    $.ajax({
+        url: '/recommend_article',
+        data: {
+            op: op,
+            articleId: articleId
+        }
+    }).done(function(data) {
+        if (data.status == 'success') {
+            if (data.data.isRecommended) {
+                button.removeClass('btn-default').addClass('btn-success');
+                button.text('已推荐')
+            } else {
+                button.removeClass('btn-success').addClass('btn-default');
+                button.text('推荐');
+            }
+        } else if (data.status == 'fail') {
+            switch (data.code) {
+                case 1:
+                    LoginUtil.login();
+                    break;
+            }
+        } else {
+            alert(data.message);
+        }
+    });
+});

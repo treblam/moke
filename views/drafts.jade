@@ -1,20 +1,20 @@
 extends layout
 block content
     .main-container
-        h1.h1 文集
+        h1.h1 草稿
+
+        .empty-instruct 暂时没有草稿
+      //
         ul.collections
             each collection in collections
                 li.collection
-
-                    a.coll-link(href='/collection/#{collection._id}')
-                      span.name= collection.name
-                      span.intro= collection.intro
-
+                    a.coll-link(href='/collection')
+                        span.name= collection.name
+                        span.intro= collection.intro
                     if collection.isFollowing
                         button.btn.btn-sm.btn-success.follow-btn.subscribe-coll(data-collid=collection._id.toString()) 已订阅
                     else
                         button.btn.btn-sm.btn-default.follow-btn.subscribe-coll(data-collId=collection._id.toString()) 订阅
-
         ul.buttons
             li
                 button#create-collection.btn.btn-success(type='button') 创建文集

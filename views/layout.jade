@@ -48,8 +48,17 @@ html
             li
               a(href='/writers') 作者
 
-    script(type='text/javascript' src='/js/jquery-1.11.1.min.js')
-    script(type='text/javascript' src='/js/bootstrap.min.js')
-    script(type='text/javascript' src='/js/moke.js')
+  div#login-modal.modal.fade.bs-example-modal-sm(tabindex='-1', role='dialog', aria-labelledby='mySmallModalLabel', aria-hidden='true')
+    div.modal-dialog.modal-sm
+        div.modal-content
+            .modal-header
+                button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+                h4#myModalLabel.modal-title 请登录
+            .modal-body.text-center
+                button#qq-login.btn.btn-sm.btn-primary(type='button') 使用QQ登录
 
-    block script
+  script(type='text/javascript' src='/js/jquery-1.11.1.min.js')
+  script(type='text/javascript' src='/js/bootstrap.min.js')
+  script(type='text/javascript' src='/js/moke.js')
+
+  block script

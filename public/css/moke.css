@@ -358,16 +358,8 @@ body {
 }
 
 /*-----------关于-----------*/
-.about h1 {
-    font-weight: bold;
-    margin-top: 150px;
-    margin-bottom: 30px;
-}
-
-.about {
-    width: 600px;
-    margin: 100px auto 0;
-    display: block;
+.about p {
+    text-align: center;
 }
 
 /*-------------编辑器--------------*/
@@ -592,7 +584,8 @@ html, body {
 .empty-instruct {
     font-size: 24px;
     text-align: center;
-    padding-top: 250px;
+    padding-top: 100px;
+    color: #b3b3b1;
 }
 
 .h1 {

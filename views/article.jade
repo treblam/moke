@@ -48,9 +48,9 @@ block content
                 if !isMyself
                   .follow-wrapper
                     if author.isFollowing
-                      button#user-follow-btn.btn.btn-sm.btn-success 已关注
+                      button.follow-user.btn.btn-sm.btn-success(data-uid=author._id.toString()) 已关注
                     else
-                      button#user-follow-btn.btn.btn-sm.btn-default 关注
+                      button.follow-user.btn.btn-sm.btn-default(data-uid=author._id.toString()) 关注
 
         if article.collection
             div.col-lg-6.info-card.collection-info
@@ -61,9 +61,9 @@ block content
                 = article.collection.intro
                 .follow-wrapper
                   if article.collection.isFollowing
-                      button.coll-follow-btn.btn.btn-sm.btn-success(data-collid=article.collection._id.toString()) 已订阅
+                      button.subscribe-coll.btn.btn-sm.btn-success(data-collid=article.collection._id.toString()) 已订阅
                   else
-                      button.coll-follow-btn.btn.btn-sm.btn-default(data-collid=article.collection._id.toString()) 订阅
+                      button.subscribe-coll.btn.btn-sm.btn-default(data-collid=article.collection._id.toString()) 订阅
 
 
     script.
@@ -82,91 +82,3 @@ block script
     $('#edit-btn').click(function(e) {
         window.location.href = '/write/' + articleId;
     });
-
-    $('#recommend-article').click(function(e) {
-        // 根据class来判断要做何操作
-        var that = $(this);
-        var op = that.is('.btn-default') ? 1 : 0;
-
-        $.ajax({
-            url: '/recommend_article',
-            data: {
-                op: op,
-                articleId: articleId
-            }
-        }).done(function(data) {
-            if (data.status == 'success') {
-                if (data.data.isRecommended) {
-                    that.removeClass('btn-default').addClass('btn-success');
-                    that.text('已推荐')
-                } else {
-                    that.removeClass('btn-success').addClass('btn-default');
-                    that.text('推荐');
-                }
-            } else {
-                alert(data.message);
-            }
-        });
-    });
-
-    var followBtn = $('#user-follow-btn');
-
-    var uid = '#{author._id}';
-
-    followBtn.click(function(e) {
-        var isFollowing = followBtn.is('.btn-success');
-        $.ajax({
-            url: '/follow_user',
-            data: {
-                uid: uid,
-                op: isFollowing ? 0 : 1
-            }
-        }).success(function(data) {
-            if (data.status == 'success') {
-                if (data.data.isFollowing) {
-                    followBtn.removeClass('btn-default').addClass('btn-success');
-                    followBtn.text('已订阅');
-                } else {
-                    followBtn.removeClass('btn-success').addClass('btn-default');
-                    followBtn.text('订阅');
-                }
-            } else {
-                alert(data.message);
-            }
-        });
-    });
-
-      $('.coll-follow-btn').click(function(e) {
-          var button = $(this);
-          var isFollowing = button.is('.btn-success');
-          var collId = button.data('collid');
-          var url;
-          var op;
-
-          if (isFollowing) {
-              op = '0';
-          } else {
-              op = '1';
-          }
-
-          $.ajax({
-              url: '/subscribe_coll',
-              data: {collId: collId, op: op}
-          }).done(function(data) {
-              if (data) {
-                  if (data.status == 'success') {
-                      if (data.data.isFollowing) {
-                          button.removeClass('btn-default').addClass('btn-success').text('已订阅');
-                      } else {
-                          button.removeClass('btn-success').addClass('btn-default').text('订阅');
-                      }
-                  } else {
-                      alert(data.message);
-                  }
-              } else {
-                  alert('操作失败');
-              }
-          }).fail(function(data) {
-              alert('操作失败');
-          })
-      });

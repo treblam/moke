@@ -8,9 +8,9 @@ block content
       div.intro= collection.intro
       div.follow-wrapper
         if collection.isFollowing
-          button.btn.btn-lg.btn-success.follow-btn(data-collid=collection._id.toString()) 已订阅
+          button.btn.btn-lg.btn-success.subscribe-coll(data-collid=collection._id.toString()) 已订阅
         else
-          button.btn.btn-lg.btn-default.follow-btn(data-collid=collection._id.toString()) 订阅
+          button.btn.btn-lg.btn-default.subscribe-coll(data-collid=collection._id.toString()) 订阅
 
     section.article-list
         each article in collection.articles
@@ -32,7 +32,7 @@ block content
     ul.buttons
       li
         button#contribute.btn.btn-default(type='button') 投稿
-      if user && user._id.str == collection.creator.str
+      if user && user._id.toString() == collection.creator.toString()
         li
           button#edit-btn.btn.btn-success(type='button') 编辑
 
@@ -48,40 +48,6 @@ block script
             window.location.href = '/edit_collection/' + collId;
         });
 
-        $('.follow-btn').click(function(e) {
-            var button = $(this);
-            var isFollowing = button.is('.btn-success');
-            var collId = button.data('collid');
-            var op;
-
-            if (isFollowing) {
-                op = '0';
-            } else {
-                op = '1';
-            }
-
-            $.ajax({
-                url: '/subscribe_coll',
-                data: {collId: collId, op: op}
-            }).done(function(data) {
-                if (data) {
-                    if (data.status == 'success') {
-                        if (data.data.isFollowing) {
-                            button.removeClass('btn-default').addClass('btn-success').text('已订阅');
-                        } else {
-                            button.removeClass('btn-success').addClass('btn-default').text('订阅');
-                        }
-                    } else {
-                        alert(data.message);
-                    }
-                } else {
-                    alert('操作失败');
-                }
-            }).fail(function(data) {
-                alert('操作失败');
-            })
-        });
-
         var articlesWrapper = $('#choose-articles');
 
         $('#contribute').on('click', function(e) {
@@ -93,9 +59,22 @@ block script
                 data: {
                     collId: collId
                 }
-            }).done(function(html) {
-                articlesWrapper.html(html);
-                articlesWrapper.slideDown();
+            }).done(function(data) {
+                if (data.status == 'success') {
+                    articlesWrapper.html(data.data.html);
+                    articlesWrapper.slideDown();
+                } else if (data.status == 'fail') {
+                    switch (data.code) {
+                        case 1:
+                            LoginUtil.login();
+                            bread;
+                        default:
+                            alert(data.message);
+                            break;
+                    }
+                } else {
+                    alert(data.message);
+                }
             });
         });
 

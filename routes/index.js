@@ -45,7 +45,6 @@ passport.use(new qqStrategy({
                     userFollowing: [],
                     interests: []
                 }, function(err, user) {
-
                     if (user != null) {
                         console.log('user is not null. insert suc.');
                         console.log(user);
@@ -71,9 +70,6 @@ passport.use(new qqStrategy({
                     avatar_s: profile._json.figureurl,
                     avatar_m: profile._json.figureurl_1,
                     avatar_l: profile._json.figureurl_2
-                },
-                $unset: {
-                    avatar: ''
                 },
                 $setOnInsert: {
                     openId: profile.id,
@@ -149,11 +145,12 @@ router.get('/read', function(req, res) {
     if (user == null) {
         query = {};
     } else {
+        var following = user.userFollowing.push(user._id); // 把自己算进去
         query = {
             $or: [
-                { author: { $in: user.userFollowing } },
+                { author: { $in: following } },
                 { collections: { $in: user.collFollowing } },
-                { recommends: { $in: user.userFollowing } }
+                { recommends: { $in: following } }
             ]
         }
     }
@@ -179,6 +176,7 @@ router.get('/read', function(req, res) {
 /*
   处理文章信息，包括查找作者，并提取副标题等
   needSubtitle 在副标题为空时，是否需要从内容提取副标题
+  user 如果有传表示需要知道是否有订阅文章作者和文集
  */
 function processArticleData(articles, needSubtitle, user, callback) {
     var count = 0;
@@ -201,13 +199,31 @@ function processArticleData(articles, needSubtitle, user, callback) {
         }
     }
 
+    function findAuthorCallback() {
+        // 如果已经循环完毕了
+        if (count == articles.length) {
+            isAuthorComplete = true;
+
+            if (isCollComplete) {
+                callback(articles);
+            }
+        }
+    }
+
     articles.forEach(function(article, index) {
         console.log('forEach article: ');
         console.log(article);
 
+        if (!article) {
+            count++;
+            counter++;
+            findAuthorCallback();
+            findCollCallback();
+            return;
+        }
+
         var authorId = article.author;
         var users = db.get('users');
-
 
         if (needSubtitle && !article.subtitle) {
             article.subtitle = extractSubtitle(article.content);
@@ -218,18 +234,13 @@ function processArticleData(articles, needSubtitle, user, callback) {
             if (err) {
 
             } else {
+                author.isFollowing = user && include(user.userFollowing, author._id.toString());
                 article.author = author;
                 console.log('author found:');
                 console.log(author);
             }
 
-            // 如果已经循环完毕了
-            if (count == articles.length) {
-                isAuthorComplete = true;
-                if (isCollComplete) {
-                    callback(articles);
-                }
-            }
+            findAuthorCallback();
         });
 
         if (article.collections && article.collections.length > 0) {
@@ -317,6 +328,12 @@ router.delete('/article', function(req, res) {
 router.get('/about', function(req, res) {
     res.render('about', {
         title: "关于"
+    });
+});
+
+router.get('/drafts', function(req, res) {
+    res.render('drafts', {
+        title: "草稿"
     });
 });
 
@@ -625,7 +642,7 @@ router.delete('/collection', filter.authorize, function(req, res) {
     });
 });
 
-router.get('/subscribe_coll', filter.authorize, function(req, res) {
+router.get('/subscribe_coll', function(req, res) {
 
     var collId = req.query['collId'];
     var op = req.query['op'];
@@ -636,6 +653,15 @@ router.get('/subscribe_coll', filter.authorize, function(req, res) {
             message: '文集id为空，无法订阅'
         });
 
+        return;
+    }
+
+    if (!req.user) {
+        res.json({
+            status: 'fail',
+            code: 1,
+            message: '请登录'
+        });
         return;
     }
 
@@ -653,7 +679,7 @@ router.get('/subscribe_coll', filter.authorize, function(req, res) {
         $pull: {
             collFollowing: users.id(collId)
         }
-    }
+    };
 
     users.findAndModify({_id: req.user._id}, replacement, function(err, count) {
         if (err) {
@@ -683,54 +709,6 @@ router.get('/subscribe_coll', filter.authorize, function(req, res) {
     });
 });
 
-/*router.get('/coll_unsubscribe', filter.authorize, function(req, res) {
-    var collId = req.query['collId'];
-
-    if (!collId) {
-        res.json({
-            status: 'fail',
-            message: '文集id为空，无法订阅'
-        });
-
-        return;
-    }
-
-    console.log('unsubscribe collid: ');
-    console.log(collId);
-
-    users.update({_id: req.user._id}, {
-        $pull: {
-            collFollowing: users.id(collId)
-        }
-    }, function(err, count) {
-        if (err) {
-            res.json({
-                status: 'error',
-                message: '退订文集出错',
-                data: err
-            });
-
-            return;
-        }
-
-        if (count < 1) {
-            res.json({
-                status: 'fail',
-                message: '退订文集失败',
-                data: null
-            });
-        } else {
-            res.json({
-                status: 'success',
-                message: '退订成功',
-                data: {
-                    isFollowing: false
-                }
-            });
-        }
-    });
-});*/
-
 router.get('/auth/qq',
     passport.authenticate('qq', {scope: 'get_user_info'})
 );
@@ -747,10 +725,7 @@ router.get('/logout', function(req, res){
 // 这个页面专门用来做登录后的跳转，通知给登录窗口的opener
 router.get('/loginredirect', function(req, res) {
     // var isSuc = req.query['suc'] == 1;
-
-    res.render('loginredirect', {
-
-    });
+    res.render('loginredirect', { });
 });
 
 router.post('/article', filter.authorize, function(req, res) {
@@ -768,50 +743,41 @@ router.post('/article', filter.authorize, function(req, res) {
     };
 
     console.log('post to write, articleId: ' + articleId);
+    console.log('start to update.');
 
-//    if (articleId) {
-        console.log('start to update.');
-        if (!articleId) { // 没有articleId表示要新建一个
-            articleId = articles.id();
+    if (!articleId) { // 没有articleId表示要新建一个
+        articleId = articles.id();
+    }
+    articles.findAndModify({_id: articleId}, {$set: articleData}, {upsert: true}, function(err, article) {
+        if (err) {
+
+        } else {
+            console.log('articleId: ' + articleId);
+            res.redirect('/article/' + articleId);
         }
-        articles.findAndModify({_id: articleId}, {$set: articleData}, {upsert: true}, function(err, count) {
-            if (err) {
-
-            } else {
-                console.log('articleId: ' + articleId);
-//                console.log('new articleId: ' + article._id);
-                /*if (count == 1) { // 如果是编辑
-                    res.redirect('/article/' + article._id);
-                } else */
-                //if {
-                    res.redirect('/article/' + articleId);
-//                }
-            }
-        });
-    /*} else {
-        articles.insert(articleData, function(err, article) {de
-            if (err) {
-
-            } else {
-                console.log('article: ');
-                console.log(article);
-
-                res.redirect('/article/' + article._id);
-            }
-        });
-    }*/
-
-
+    });
 });
 
-router.get('/myarticles', filter.authorize, function(req, res) {
+router.get('/myarticles', function(req, res) {
+    if (!req.user) {
+        res.json({
+            status: 'fail',
+            code: 1,
+            message: '请登录'
+        });
+        return;
+    }
+
     var uid = req.user._id;
     console.log('get myarticles, uid: ' + uid);
 
     var collId = req.query.collId;
 
     if (!collId) {
-        res.send('缺少文集id');
+        res.json({
+            status: 'fail',
+            message: '缺少文集id'
+        });
     }
 
     articles.find({author: uid}, function(err, articles) {
@@ -826,12 +792,17 @@ router.get('/myarticles', filter.authorize, function(req, res) {
         }, function(err, html) {
             console.log('get my articles html: ');
             console.log(html);
-            res.send(html);
+            res.json({
+                status: 'success',
+                data: {
+                    html: html
+                }
+            })
         })
     });
 });
 
-router.get('/contribute', filter.authorize, function(req, res) {
+router.get('/contribute', function(req, res) {
     var articleId = req.query.articleId;
     var collId = req.query.collId;
 
@@ -879,7 +850,7 @@ router.get('/contribute', filter.authorize, function(req, res) {
     })
 });
 
-router.get('/decontribute', filter.authorize, function(req, res) {
+router.get('/decontribute', function(req, res) {
     var articleId = req.query.articleId;
     var collId = req.query.collId;
 
@@ -922,10 +893,20 @@ router.get('/decontribute', filter.authorize, function(req, res) {
     });
 });
 
-router.get('/recommend_article', filter.authorize, function(req, res) {
+router.get('/recommend_article', function(req, res) {
     var articleId = req.query['articleId'];
-    var uid = req.user._id;
     var op = req.query['op'];
+
+    if (!req.user) {
+        res.json({
+            status: 'fail',
+            code: 1,
+            message: '请登录'
+        });
+        return;
+    }
+
+    var uid = req.user._id;
 
     if (!articleId || !uid) {
         res.json({
@@ -935,6 +916,7 @@ router.get('/recommend_article', filter.authorize, function(req, res) {
 
         return;
     }
+
 
     var replacement = op == 1 ?
     {
@@ -981,7 +963,7 @@ function extractSubtitle(content) {
     return content && content.replace(/(<([^>]+)>)/ig, '').substr(0, 60) + '...';
 }
 
-router.get('/follow_user', filter.authorize, function(req, res) {
+router.get('/follow_user', function(req, res) {
     var uid = req.query['uid'];
     var op = req.query['op'];
 
@@ -991,6 +973,15 @@ router.get('/follow_user', filter.authorize, function(req, res) {
             message: '用户id为空，无法收听'
         });
 
+        return;
+    }
+
+    if (!req.user) {
+        res.json({
+            status: 'fail',
+            code: 1,
+            message: '请登录'
+        });
         return;
     }
 
