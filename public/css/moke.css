@@ -574,6 +574,7 @@ html, body {
 
 .my-articles li {
     position: relative;
+    padding-right: 50px;
 }
 
 .my-articles li .add-my-article {
