@@ -599,7 +599,7 @@ html, body {
 .my-articles .already-contributed .remove-article {
     color: red;
     position: absolute;
-    right: 10px;
+    right: 0;
     top: 0;
     display: inline;
 }
