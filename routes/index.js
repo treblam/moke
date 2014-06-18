@@ -396,9 +396,14 @@ router.get('/home/:uid', function(req, res) {
     }
 
     users.findById(uid, function(err, user) {
-        if (err != null) {
-
+        if (err) {
+            console.log('User home find user error: ');
+            console.log(err);
         } else {
+            if (!user) {
+
+            }
+
             user.isFollowing = req.user && include(req.user.userFollowing, uid);
 
             articles.find({ author: articles.id(uid) }, { limit: 4 }, function(err, docs) {

@@ -40,12 +40,15 @@ html
         div.menu-wrapper
           ul.menu-items
             li
-              a(href='/read') 首页
+              a(href='/read') 阅读
             if user
                 li
                   a(href='/home/#{user._id}')
                     img.avatar(src='#{user.avatar_s}' alt='头像')
                     | #{user.nickname}
+            else
+              li
+                a(href='/signin') 登录
             li
               a(href='/write') 写作
             if user

@@ -1,7 +1,15 @@
 /*全站公用的css*/
 body {
     font-family: "Lucida Grande","Lucida Sans Unicode", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei", SimSun, sans-serif;
-    color: #666;
+    color: #4d4d4d;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #3a3a3a;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #3a3a3a;
 }
 
 a, a:active, a:focus {
@@ -21,6 +29,7 @@ a, a:active, a:focus {
 .index-title {
     margin: 20px 0 20px 0;
     font-weight: bold;
+    font-size: 50px;
 }
 
 .index-introduction {
@@ -36,8 +45,8 @@ a, a:active, a:focus {
 .index-introduction p a {
     margin-right: 20px;
     font-size: 18px;
-    border-bottom: 3px solid #d0d0d0;
-    color: #000000;
+    border-bottom: 3px solid #000;
+    color: #000;
     text-decoration: none;
 }
 
@@ -120,7 +129,7 @@ a, a:active, a:focus {
 }
 
 .article .title, .article .title a {
-    color: #333;
+    color: #000;
 }
 
 .article .subtitle, .article .subtitle a {
@@ -284,6 +293,7 @@ a, a:active, a:focus {
 
 .user-header .nickname {
     font-weight: bold;
+    color: #3a3a3a;
 }
 
 .user-header .user-intro {
@@ -367,6 +377,7 @@ a, a:active, a:focus {
 /*-----------关于-----------*/
 .about p {
     text-align: center;
+    font-size: 18px;
 }
 
 /*-------------编辑器--------------*/
@@ -426,7 +437,7 @@ html, body {
 }
 
 .menu-items a {
-    color: #000000;
+    color: #333;
 }
 
 .collection-header {
@@ -601,6 +612,7 @@ html, body {
 }
 
 .h1 {
+    color: #333;
     font-weight: bold;
     font-size: 50px;
     text-align: center;
