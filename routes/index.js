@@ -401,7 +401,8 @@ router.get('/home/:uid', function(req, res) {
             console.log(err);
         } else {
             if (!user) {
-
+                res.send(404, '未找到用户');
+                return;
             }
 
             user.isFollowing = req.user && include(req.user.userFollowing, uid);
@@ -495,7 +496,7 @@ router.get('/collection/:collectionId', function(req, res) {
         } else {
             if (!coll) {
                 console.log('未找到指定的文集');
-                res.send('未找到指定的文集');
+                res.send(404, '未找到指定的文集');
                 return;
             }
             var user = req.user;
@@ -948,7 +949,18 @@ router.get('/recommend_article', function(req, res) {
 });
 
 function extractSubtitle(content) {
-    return content && content.replace(/(<([^>]+)>)/ig, '').substr(0, 60) + '...';
+    var SUBTITLE_LEN = 60;
+    var subtitle;
+    if (content) {
+        var textContent = content && content.replace(/(<([^>]+)>)/ig, '');
+        if (textContent.length > SUBTITLE_LEN) {
+            subtitle = textContent.substr(0, 60) + '...';
+        } else {
+            subtitle = textContent;
+        }
+    }
+
+    return subtitle;
 }
 
 router.get('/follow_user', function(req, res) {

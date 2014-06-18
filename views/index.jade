@@ -32,3 +32,7 @@ block content
                 a(href='./logout') 退出
             else
               a(href='./signin') 登录
+
+block script
+    script.
+        AlertUtil.alert('warning', '网站目前处于测试阶段，需要将QQ加入白名单才能登陆，请联系Email: treblam@gmail.com 加入白名单', false);

@@ -619,3 +619,11 @@ html, body {
     text-align: center;
     margin: 50px 0;
 }
+
+.alert-position {
+    position: fixed;
+    width: 640px;
+    top: 20px;
+    left: 50%;
+    margin-left: -320px;
+}

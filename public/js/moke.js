@@ -47,6 +47,27 @@ var LoginUtil = {
 
 LoginUtil.init();
 
+var AlertUtil = {
+    alert: function(type, text, autoDismiss) {
+        autoDismiss = typeof autoDismiss !== 'undefined' ? autoDismiss : true;
+        var className = 'alert-' + type;
+        var alertHtml = '<div class="alert ' + className + (autoDismiss ? '' : ' alert-dismissable') + ' alert-position">' +
+            text +
+            (autoDismiss ? '' : '<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>') +
+            '</div>';
+
+        var alertEle = $(alertHtml).appendTo($('body'));
+
+        if (autoDismiss) {
+            setTimeout(function() {
+                alertEle.fadeOut(function() {
+                    alertEle.remove();
+                });
+            }, 2000);
+        }
+    }
+};
+
 $(document).on('click', '.subscribe-coll', function(e) {
     var button = $(this);
     var isFollowing = button.is('.btn-success');

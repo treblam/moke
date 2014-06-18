@@ -28,6 +28,9 @@ block content
       input(type='hidden', name='content')
       input#article-id(type='hidden', name='articleId' value=article ? article._id : '')
 
+  //.alert.alert-danger.alert-position 副标题太短
+
+
 
 block script
   script(src='/editor/js/medium-editor.js')
@@ -50,12 +53,32 @@ block script
       var subtitle = data.subtitle.value.replace(/^<p>(.*)<\/p>/, '$1');
       var content = data.content.value;
 
+      title = title.trim();
+      subtitle = subtitle.trim();
+      content = content.trim();
+
       console.log(title);
       console.log(subtitle);
       console.log(content);
 
+      if (!title) {
+          AlertUtil.alert('danger', '标题不能为空');
+          return;
+      } else if (title.length > 30) {
+          AlertUtil.alert('danger', '标题长度不能超过30个字');
+          return;
+      }
+      if (subtitle.length > 60) {
+          AlertUtil.alert('danger', '副标题不能超过60个字');
+          return;
+      }
+      if (!content) {
+          AlertUtil.alert('danger', '文章内容不能为空');
+          return;
+      }
+
       if (form) {
-        form.elements['title'].value = title;
+        form.elements['title'].value = title.trim();
         form.elements['subtitle'].value = subtitle;
         form.elements['content'].value = content;
         form.submit();
