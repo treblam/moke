@@ -5,7 +5,7 @@ html
     meta(http-equiv='X-UA-Compatible', content='IE=edge')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     meta(property="qc:admins", content="423175525765735617")
-      
+
     title= title
 
     link(rel='shortcut icon', href='/favicon.ico', type='image/x-icon')
@@ -39,15 +39,17 @@ html
       div.header-inner
         h1.logo.icon-moke 墨客
         .site-nav
+          - var nav = {};
+          - if (id) nav[id] = 'nav-active';
           ul.nav-list.nav-primary
             li
-              a.nav-link(href='/read') 阅读
+              a.nav-link(href='/read', class=nav.read) 阅读
             li
-              a.nav-link(href='/write') 写作
+              a.nav-link(href='/write', class=nav.write) 写作
             li
-              a.nav-link(href='/collections') 文集
+              a.nav-link(href='/collections', class=nav.collections) 文集
             li
-              a.nav-link(href='/writers') 作者
+              a.nav-link(href='/writers', class=nav.writers) 作者
 
           ul.nav-list.nav-utility
             if user

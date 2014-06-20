@@ -134,7 +134,7 @@ router.get('/', function(req, res) {
     });
 });*/
 
-router.get('/read', function(req, res) {
+router.get('/read', function(req, res, next) {
     var db = req.db;
     var articles = db.get('articles');
     var user = req.user;
@@ -159,15 +159,17 @@ router.get('/read', function(req, res) {
         function(err, articles) {
             if (err) {
                 console.log(err);
-            } else {
-                processArticleData(articles, true, null, function(arts) {
-                    res.render('read', {
-                        title: "杂志",
-                        articles: arts,
-                        user: req.user
-                    });
-                });
+                return next(err);
             }
+
+            processArticleData(articles, true, null, function(arts) {
+                res.render('read', {
+                    title: "杂志",
+                    articles: arts,
+                    user: req.user,
+                    id: 'read'
+                });
+            });
         }
     );
 });
@@ -323,27 +325,28 @@ router.get('/drafts', function(req, res) {
 });
 
 router.get('/write/:articleId?', filter.authorize, function(req, res) {
-
     var articleId = req.param('articleId');
+
     if (articleId) {
         articles.findById(articleId, function(err, article) {
             if (err) {
-
-            } else {
-                res.render('write', {
-                    title: '写作',
-                    article: article,
-                    user: req.user
-                })
+                console.log(err);
+                return next(err);
             }
+            res.render('write', {
+                title: '写作',
+                article: article,
+                user: req.user,
+                id: 'write'
+            });
         });
-
     } else {
         console.log('no article id, user: ');
         console.log(req.user);
         res.render('write', {
             title: "写作",
-            user: req.user
+            user: req.user,
+            id: 'write'
         });
     }
 
@@ -385,20 +388,16 @@ router.post('/signin', function(req, res) {
     });
 });
 
-router.get('/home/:uid', function(req, res) {
+router.get('/home/:uid', function(req, res, next) {
     var uid = req.param('uid');
     console.log('uid: ');
     console.log(uid);
-
-    if (!uid) {
-        res.send('用户id为空');
-        return;
-    }
 
     users.findById(uid, function(err, user) {
         if (err) {
             console.log('User home find user error: ');
             console.log(err);
+            return next(err);
         } else {
             if (!user) {
                 res.send(404, '未找到用户');
@@ -457,23 +456,21 @@ function include(arr, obj) {
     });
 }
 
-router.get('/collections', function(req, res) {
-
+router.get('/collections', function(req, res, next) {
     collections.find({}, function(err, colls) {
         if (err) {
-
-        } else {
-
-            var user = req.user;
-
-            processColls(colls, user, function(newColls) {
-                res.render('collections', {
-                    title: '文集',
-                    collections: newColls,
-                    user: user
-                });
-            });
+            return next(err);
         }
+
+        var user = req.user;
+        processColls(colls, user, function(newColls) {
+            res.render('collections', {
+                title: '文集',
+                collections: newColls,
+                user: user,
+                id: 'collections'
+            });
+        });
     });
 });
 
@@ -703,8 +700,19 @@ router.get('/auth/qq',
     passport.authenticate('qq', {scope: 'get_user_info'})
 );
 
-router.get('/auth/qq/callback',
-    passport.authenticate('qq', { successRedirect: '/loginredirect?suc=1', failureRedirect: '/loginredirect?suc=0' })
+router.get('/auth/qq/callback', function(req, res, next) {
+        passport.authenticate('qq', function(err, user, info) {
+            if (err) { return next(err); }
+            if (!user) { return res.redirect('/loginredirect?suc=0'); }
+            req.logIn(user, function(err) {
+                if (err) { return next(err); }
+                var redirectTo = req.session.redirectTo || '/loginredirect?suc=0';
+                delete req.session.redirectTo;
+                return res.redirect(redirectTo);
+            });
+        })(req, res, next);
+    }
+//{ successRedirect: '/loginredirect?suc=1', failureRedirect: '/loginredirect?suc=0' }
 );
 
 router.get('/logout', function(req, res){
@@ -1027,11 +1035,10 @@ router.get('/follow_user', function(req, res) {
 
 });
 
-router.get('/writers', function(req, res) {
+router.get('/writers', function(req, res, next) {
     users.find({}, { limit: 10 }, function(err, writers) {
         if (err) {
-            res.send(err);
-            return;
+            return next(err);
         }
 
         writers.forEach(function(writer, index) {
@@ -1040,7 +1047,8 @@ router.get('/writers', function(req, res) {
 
         res.render('writers', {
             users: writers,
-            user: req.user
+            user: req.user,
+            id: 'writers'
         });
     });
 });
@@ -1051,7 +1059,6 @@ router.put('/users/:uid', function(req, res) {
     var nickname = req.body.nickname;
     var intro = req.body.intro;
     // todo 对nickname做一些判空的处理
-
     users.update({ _id: uid }, { $set: { nickname: nickname, intro: intro } }, function(err, count) {
         if (err) {
             res.json({
