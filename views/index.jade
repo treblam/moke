@@ -3,6 +3,7 @@ extends layout
 block css
     style(type='text/css').
         #menu-btn { display: none; }
+        .moke-header { display: none; }
 
 
 block content
@@ -33,6 +34,7 @@ block content
             else
               a(href='./signin') 登录
 
-block script
+//
+  block script
     script.
         AlertUtil.alert('warning', '网站目前处于测试阶段，需要将QQ加入白名单才能登陆，请联系Email: treblam@gmail.com 加入白名单', false);

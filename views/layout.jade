@@ -34,8 +34,38 @@ html
 
     // link(rel='stylesheet', href='/stylesheets/style.css')
   body
+    header.moke-header
+      div.header-inner
+        h1.logo.icon-moke 墨客
+        .site-nav
+          ul.nav-list.nav-primary
+            li
+              a.nav-link(href='/read') 阅读
+            li
+              a.nav-link(href='/write') 写作
+            li
+              a.nav-link(href='/collections') 文集
+            li
+              a.nav-link(href='/writers') 作者
+
+          ul.nav-list.nav-utility
+            if user
+              li
+                a.nav-link(href='/home/#{user._id}')
+                  //img.avatar(src='#{user.avatar_s}' alt='头像')
+                  | #{user.nickname}
+              li
+                a.nav-link(href='/settings') 设置
+              li
+                a.nav-link(href='/logout') 退出
+            else
+              li
+                a.nav-link(href='/signin') 登录
+
+
 
     block content
+
     a#menu-btn.home(href='/')
       img(src='/images/mo/7935875_203322167100_2.jpg' alt='')
 
