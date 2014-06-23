@@ -117,7 +117,7 @@ block script
 
         $('#edit-profile').click(function(e) {
             if (editBtns.is(':visible')) {
-                cancelEdit();
+                completeEdit();
             } else {
                 if (userIntro.text() == INTRO_DEFAULT) {
                     userIntro.text('');
