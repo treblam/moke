@@ -55,10 +55,11 @@ html
             if user
               li
                 a.nav-link(href='/home/#{user._id}')
-                  //img.avatar(src='#{user.avatar_s}' alt='头像')
+                  img.avatar(src='#{user.avatar_s}' alt='头像')
                   | #{user.nickname}
-              li
-                a.nav-link(href='/settings') 设置
+              //
+                li
+                  a.nav-link(href='/settings') 设置
               li
                 a.nav-link(href='/logout') 退出
             else

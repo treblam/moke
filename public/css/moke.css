@@ -499,6 +499,14 @@ body {
     margin-top: 60px;
 }
 
+.qq-login-btn {
+    width: 120px;
+    height: 24px;
+    background: url("/images/qq_login_bg.png") no-repeat;
+    border: none;
+    text-indent: -200%;
+}
+
 /*-----------关于-----------*/
 .about p {
     text-align: center;
