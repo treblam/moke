@@ -20,17 +20,18 @@ block content
       li
         button#cancel-btn.btn.btn-default(type='button') 取消
       li
-        button#submit-btn.btn.btn-success(type='button') 发布
+        button#save-btn.btn.btn-default(type='button') 保存
+      li
+        button#publish-btn.btn.btn-success(type='button') 发布
 
-    form(action='/article', method='post', name='article')
+    form(action='/articles', method='post', name='article')
       input(type='hidden', name='title')
       input(type='hidden', name='subtitle')
       input(type='hidden', name='content')
+      input(type='hidden', name='draft')
       input#article-id(type='hidden', name='articleId' value=article ? article._id : '')
 
   //.alert.alert-danger.alert-position 副标题太短
-
-
 
 block script
   script(src='/editor/js/medium-editor.js')
@@ -38,6 +39,9 @@ block script
     var editors = new MediumEditor('.editable');
 
     var articleId = '#{article ? article._id : ''}';
+
+    // 点保存按钮时，给draft传的值
+    var isDraft = #{article ? !!article.draft : true};
 
     var uid = '#{user._id}';
 
@@ -47,46 +51,95 @@ block script
 
     editables.get(0).focus();
 
-    $('#submit-btn').click(function(e) {
-      var data = editors.serialize();
-      var title = data.title.value.replace(/^<p>(.*)<\/p>/, '$1');
-      var subtitle = data.subtitle.value.replace(/^<p>(.*)<\/p>/, '$1');
-      var content = data.content.value;
+      function save(isPublish) {
+        var data = editors.serialize();
+        var title = data.title.value.replace(/^<p>(.*)<\/p>/, '$1');
+        var subtitle = data.subtitle.value.replace(/^<p>(.*)<\/p>/, '$1');
+        var content = data.content.value;
 
-      title = title.trim();
-      subtitle = subtitle.trim();
-      content = content.trim();
+        var url, method;
 
-      console.log(title);
-      console.log(subtitle);
-      console.log(content);
+        title = title.trim();
+        subtitle = subtitle.trim();
+        content = content.trim();
 
-      if (!title) {
-          AlertUtil.alert('danger', '标题不能为空');
-          return;
-      } else if (title.length > 30) {
-          AlertUtil.alert('danger', '标题长度不能超过30个字');
-          return;
-      }
-      if (subtitle.length > 60) {
-          AlertUtil.alert('danger', '副标题不能超过60个字');
-          return;
-      }
-      if (!content) {
-          AlertUtil.alert('danger', '文章内容不能为空');
-          return;
+        console.log(title);
+        console.log(subtitle);
+        console.log(content);
+
+        if (!title) {
+            AlertUtil.alert('danger', '标题不能为空');
+            return;
+        } else if (title.length > 30) {
+            AlertUtil.alert('danger', '标题长度不能超过30个字');
+            return;
+        }
+
+        if (subtitle.length > 60) {
+            AlertUtil.alert('danger', '副标题不能超过60个字');
+            return;
+        }
+
+        if (isPublish && !content) {
+            AlertUtil.alert('danger', '文章内容不能为空');
+            return;
+        }
+
+        /*var elements = form.elements;
+        if (form) {
+          elements['title'].value = title.trim();
+          elements['subtitle'].value = subtitle;
+          elements['content'].value = content;
+          elements['draft'].value = isPublish ? 'false' : isDraft;
+          form.submit();
+        }*/
+
+          var postData = {
+              title: title,
+              subtitle: subtitle,
+              content: content,
+              draft: isPublish ? false : isDraft
+          }
+
+          if (articleId) {
+              url = '/articles/' + articleId;
+              method = 'PUT';
+          } else {
+              url = '/articles';
+              method = 'POST';
+          }
+
+          $.ajax({
+              url: url,
+              type: method,
+              dataType: 'json',
+              data: JSON.stringify(postData),
+              contentType: 'application/json'
+          }).done(function(data) {
+              console.log(data);
+              if (data.status == 'success') {
+                  articleId = data.data._id.toString();
+                  if (isPublish) {
+                      window.location.href = '/article/' + data.data._id;
+                  } else {
+                      AlertUtil.alert('success', '保存成功');
+                  }
+              } else {
+                  AlertUtil.alert('danger', data.message);
+              }
+          });
       }
 
-      if (form) {
-        form.elements['title'].value = title.trim();
-        form.elements['subtitle'].value = subtitle;
-        form.elements['content'].value = content;
-        form.submit();
-      }
+    $('#publish-btn').click(function(e) {
+        save(true);
     });
 
     $('#cancel-btn').click(function(e) {
         window.location.href = '/home/' + uid;
+    });
+
+    $('#save-btn').click(function(e) {
+        save(false);
     });
 
     if (!articleId) {

@@ -141,11 +141,12 @@ router.get('/read', function(req, res, next) {
     var query;
 
     if (user == null) {
-        query = {};
+        query = {draft: { $ne: true }};
     } else {
         var following = user.userFollowing;
         following.push(user._id); // 把自己算进去
         query = {
+            draft: { $ne: true },
             $or: [
                 { author: { $in: following } },
                 { collections: { $in: user.collFollowing } },
@@ -260,33 +261,37 @@ function processArticleData(articles, needSubtitle, user, callback) {
     });
 }
 
-router.get('/article/:articleId', function(req, res) {
+router.get('/article/:articleId', function(req, res, next) {
     var articleId = req.param('articleId');
 
     console.log('articleId: ');
     console.log(articleId);
 
-    articles.findById(articleId, function(err, article) {
+    articles.find({
+        _id: articleId,
+        draft: { $ne: true }
+    }, function(err, arts) {
         if (err) {
             console.log(err);
-        } else {
-            console.log('found article.');
-            processArticleData([ article ], false, req.user, function(articleArr) {
-                var newArticle = articleArr && articleArr[0];
-
-                if (!newArticle) {
-                    res.send('查找文章失败');
-                    return;
-                }
-
-                newArticle.isRecommended = include(newArticle.recommends, req.user && req.user._id.toString());
-
-                res.render('article', {
-                    article: newArticle,
-                    user: req.user
-                });
-            });
+            return next(err);
         }
+
+        console.log('found article.');
+        processArticleData(arts, false, req.user, function(articleArr) {
+            var newArticle = articleArr && articleArr[0];
+
+            if (!newArticle) {
+                res.send('查找文章失败');
+                return;
+            }
+
+            newArticle.isRecommended = include(newArticle.recommends, req.user && req.user._id.toString());
+
+            res.render('article', {
+                article: newArticle,
+                user: req.user
+            });
+        });
     });
 });
 
@@ -318,9 +323,30 @@ router.get('/about', function(req, res) {
     });
 });
 
-router.get('/drafts', function(req, res) {
-    res.render('drafts', {
-        title: "草稿"
+router.get('/drafts', filter.authorize, function(req, res, next) {
+    var user = req.user;
+    if (!user) {
+        return next(new Error('查找草稿出错'));
+    }
+
+    articles.find({
+        author: user._id,
+        draft: true
+    }, function(err, articles) {
+        if (err) {
+            return next(err);
+        }
+
+        //if (articles && articles.length > 0) {
+            res.render('drafts', {
+                title: "草稿",
+                user: req.user,
+                articles: articles,
+                id: 'drafts'
+            });
+        /*} else {
+            res.redirect('/write');
+        }*/
     });
 });
 
@@ -349,17 +375,6 @@ router.get('/write/:articleId?', filter.authorize, function(req, res) {
             id: 'write'
         });
     }
-
-});
-
-router.get('/userlist', filter.authorize, function(req, res) {
-    var db = req.db;
-    var users = db.get('users');
-    users.find({}, {}, function(e, docs) {
-        res.render('userlist', {
-            "userlist": docs
-        })
-    })
 });
 
 router.get('/signin', function(req, res) {
@@ -368,7 +383,7 @@ router.get('/signin', function(req, res) {
     });
 });
 
-router.post('/signin', function(req, res) {
+/*router.post('/signin', function(req, res) {
     var db = req.db;
     var users = db.get('users');
 
@@ -386,7 +401,7 @@ router.post('/signin', function(req, res) {
             res.redirect('/userlist');
         }
     });
-});
+});*/
 
 router.get('/home/:uid', function(req, res, next) {
     var uid = req.param('uid');
@@ -406,7 +421,7 @@ router.get('/home/:uid', function(req, res, next) {
 
             user.isFollowing = req.user && include(req.user.userFollowing, uid);
 
-            articles.find({ author: articles.id(uid) }, { limit: 4 }, function(err, docs) {
+            articles.find({ author: articles.id(uid), draft: { $ne: true } }, { limit: 4 }, function(err, docs) {
                 if (err) {
                     console.log('find articles by author error: ');
                     console.log(err);
@@ -446,7 +461,6 @@ router.get('/home/:uid', function(req, res, next) {
                 }
             });
         }
-
     })
 });
 
@@ -484,37 +498,36 @@ function processColls(colls, currUser, callback) {
     callback(colls);
 }
 
-router.get('/collection/:collectionId', function(req, res) {
+router.get('/collection/:collectionId', function(req, res, next) {
     var collId = req.param('collectionId');
 
     collections.findById(collId, function(err, coll) {
         if (err) {
-
-        } else {
-            if (!coll) {
-                console.log('未找到指定的文集');
-                res.send(404, '未找到指定的文集');
-                return;
-            }
-            var user = req.user;
-            coll.isFollowing = user && user.collFollowing && include(user.collFollowing, collId);
-
-            // 根据文集的id来找文章
-            articles.find({collections: collections.id(collId)}, function(err, arts) {
-                if (err) {
-
-                } else {
-                    processArticleData(arts, true, null, function(newArticles) {
-                        coll.articles = newArticles;
-                        res.render('collection', {
-                            title: '文集',
-                            user: req.user,
-                            collection: coll
-                        });
-                    });
-                }
-            });
+            return next(err);
         }
+        if (!coll) {
+            console.log('未找到指定的文集');
+            res.send(404, '未找到指定的文集');
+            return;
+        }
+        var user = req.user;
+        coll.isFollowing = user && user.collFollowing && include(user.collFollowing, collId);
+
+        // 根据文集的id来找文章
+        articles.find({collections: collections.id(collId)}, function(err, arts) {
+            if (err) {
+                return next(err);
+            }
+
+            processArticleData(arts, true, null, function(newArticles) {
+                coll.articles = newArticles;
+                res.render('collection', {
+                    title: '文集',
+                    user: req.user,
+                    collection: coll
+                });
+            });
+        });
     });
 });
 
@@ -726,35 +739,67 @@ router.get('/loginredirect', function(req, res) {
     res.render('loginredirect', { });
 });
 
-router.post('/article', filter.authorize, function(req, res) {
+/**
+ * 发表文章
+ */
+router.post('/articles', editArticle);
 
-    var title = req.body.title;
-    var subtitle = req.body.subtitle;
-    var content = req.body.content;
-    var articleId = req.body.articleId;
+router.put('/articles/:articleId', editArticle);
 
-    var articleData = {
-        title: title,
-        subtitle: subtitle,
-        content: content,
-        author: req.user._id
-    };
+function editArticle(req, res) {
+    /*var title = req.body.title;
+     var subtitle = req.body.subtitle;
+     var content = req.body.content;
+     var articleId = req.body.articleId;
+     var draft = req.body.draft === 'true';*/
 
-    console.log('post to write, articleId: ' + articleId);
+    var articleId = req.param('articleId');
+
+    if (!req.user) {
+        res.json({
+            status: 'fail',
+            code: 1,
+            message: '请登录'
+        });
+        return;
+    }
+
+    var articleData = req.body;
+    articleData.author = req.user._id;
+
+    /*var articleData = {
+     title: title,
+     subtitle: subtitle,
+     content: content,
+     author: req.user._id,
+     draft: draft
+     };*/
+
+    //console.log('post to write, articleId: ' + articleId);
     console.log('start to update.');
 
     if (!articleId) { // 没有articleId表示要新建一个
         articleId = articles.id();
     }
+
     articles.findAndModify({_id: articleId}, {$set: articleData}, {upsert: true}, function(err, article) {
         if (err) {
-
-        } else {
-            console.log('articleId: ' + articleId);
-            res.redirect('/article/' + articleId);
+            res.json({
+                status: 'error',
+                message: err.toString()
+            });
+            return;
         }
+
+        res.json({
+            status: 'success',
+            message: '成功',
+            data: article
+        });
+        console.log('articleId: ' + articleId);
+//        res.redirect('/article/' + articleId);
     });
-});
+}
 
 router.get('/myarticles', function(req, res) {
     if (!req.user) {
@@ -778,8 +823,7 @@ router.get('/myarticles', function(req, res) {
         });
     }
 
-    articles.find({author: uid}, function(err, articles) {
-
+    articles.find({author: uid, draft: { $ne: true }}, function(err, articles) {
         articles.forEach(function(article, index) {
             article.isContributed = article.collections && include(article.collections, collId);
         });
@@ -1031,8 +1075,6 @@ router.get('/follow_user', function(req, res) {
             });
         }
     });
-
-
 });
 
 router.get('/writers', function(req, res, next) {
@@ -1091,10 +1133,13 @@ router.get('/myreads', function(req, res) {
             message: '请登录'
         });*/
 
-        query = {};
+        query = {
+            draft: { $ne: true }
+        };
 
     } else {
         query = {
+            draft: { $ne: true },
             $or: [
                 { author: { $in: user.userFollowing } },
                 { collections: { $in: user.collFollowing } },
@@ -1118,7 +1163,6 @@ router.get('/myreads', function(req, res) {
                         articles: arts,
                         user: req.user
                     });*/
-
                     res.json({
                         status: 'success',
                         message: '成功',

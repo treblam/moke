@@ -535,8 +535,6 @@ body {
     display: inline;
 }
 
-
-
 /*-----------导航------------*/
 .site-menu {
     position: fixed;
@@ -755,5 +753,6 @@ body {
     top: 20px;
     left: 50%;
     margin-left: -320px;
+    z-index: 1000;
 }
 

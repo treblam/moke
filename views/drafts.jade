@@ -3,18 +3,30 @@ block content
     .main-container
         h1.h1 草稿
 
-        .empty-instruct 暂时没有草稿
-      //
-        ul.collections
-            each collection in collections
-                li.collection
-                    a.coll-link(href='/collection')
-                        span.name= collection.name
-                        span.intro= collection.intro
-                    if collection.isFollowing
-                        button.btn.btn-sm.btn-success.follow-btn.subscribe-coll(data-collid=collection._id.toString()) 已订阅
-                    else
-                        button.btn.btn-sm.btn-default.follow-btn.subscribe-coll(data-collId=collection._id.toString()) 订阅
+
+        if !articles || articles.length == 0
+            .empty-instruct 暂时没有草稿
+        else
+            div.user-section
+                h3.section-title 草稿
+                each article in articles
+                    article.article
+                        header
+                            // <div class="collection"><a href="#">月过女墙</a></div>
+                            hgroup
+                                h3.title
+                                    a(href='/write/#{article._id}')= article.title
+                                h4.subtitle
+                                    a(href='/write/#{article._id}')= article.subtitle
+                        //-
+                            section.article-info
+                                a.avatar(href='#' onclick='return false;')
+                                    img(src='#{user.avatar_s}', alt='头像')
+                                a(href='/home/#{user._id}')= user.nickname
+                                if article.collection
+                                    | 发表在
+                                    a(href='/collection/#{article.collection._id}')= article.collection.name
+
         ul.buttons
             li
-                button#create-collection.btn.btn-success(type='button') 创建文集
+                button#new-article.btn.btn-success(type='button') 新文章

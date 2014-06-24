@@ -162,4 +162,6 @@ $(document).on('click', '.subscribe-coll', function(e) {
             alert(data.message);
         }
     });
+}).on('click', '#new-article', function(e) {
+    window.location.href = '/write';
 });
