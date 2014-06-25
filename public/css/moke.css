@@ -166,7 +166,7 @@ body {
 .index-introduction p a {
     margin-right: 20px;
     font-size: 18px;
-    border-bottom: 3px solid #000;
+    border-bottom: 3px solid #d0d0d0;
     color: #000;
     text-decoration: none;
 }

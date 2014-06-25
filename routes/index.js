@@ -156,7 +156,7 @@ router.get('/read', function(req, res, next) {
     }
 
     articles.find(query,
-        { limit: 10, sort: [['_id', 'desc']] },
+        { limit: 10, sort: [['publishTime', 'desc'], ['_id', 'desc']] },
         function(err, articles) {
             if (err) {
                 console.log(err);
@@ -421,7 +421,7 @@ router.get('/home/:uid', function(req, res, next) {
 
             user.isFollowing = req.user && include(req.user.userFollowing, uid);
 
-            articles.find({ author: articles.id(uid), draft: { $ne: true } }, { limit: 4 }, function(err, docs) {
+            articles.find({ author: articles.id(uid), draft: { $ne: true } }, { limit: 4, sort: [['publishTime', 'desc'], ['_id', 'desc']] }, function(err, docs) {
                 if (err) {
                     console.log('find articles by author error: ');
                     console.log(err);
@@ -431,31 +431,27 @@ router.get('/home/:uid', function(req, res, next) {
                         collections.find({ creator: collections.id(uid) }, { limit: 4 }, function(err, colls) {
                             if (err) {
                                 console.log(err);
-                                res.send(err);
-                            } else {
-                                processColls(colls, req.user, function(newColls) {
-
-                                    articles.find({ recommends: users.id(uid) }, { limit: 4 }, function(err, arts) {
-                                        if (err) {
-                                            console.log(err);
-                                            res.send(err);
-                                        } else {
-                                            processArticleData(arts, false, req.user, function(newArts) {
-                                                // todo 要判断主人态，主人态要加编辑功能
-                                                res.render('home', {
-                                                    title: "个人主页",
-                                                    user: req.user,
-                                                    targetUser: user,
-                                                    articles: newDocs,
-                                                    collections: newColls,
-                                                    recommends: newArts
-                                                });
-                                            });
-                                        }
-                                    });
-
-                                });
+                                return next(err);
                             }
+                            processColls(colls, req.user, function(newColls) {
+                                // todo recommends需要根据时间来排序
+                                articles.find({ recommends: users.id(uid) }, { limit: 4 }, function(err, arts) {
+                                    if (err) {
+                                        console.log(err);
+                                        return next(err);
+                                    }
+                                    processArticleData(arts, false, req.user, function(newArts) {
+                                        res.render('home', {
+                                            title: "个人主页",
+                                            user: req.user,
+                                            targetUser: user,
+                                            articles: newDocs,
+                                            collections: newColls,
+                                            recommends: newArts
+                                        });
+                                    });
+                                });
+                            });
                         });
                     });
                 }
@@ -766,6 +762,11 @@ function editArticle(req, res) {
 
     var articleData = req.body;
     articleData.author = req.user._id;
+    var isFirstPublish = articleData.draft && articleData.isPublish;
+    articleData.draft = articleData.draft && !articleData.isPublish;
+    if (isFirstPublish) { // 首次发布把发布时间写进去
+        articleData.publishTime = Date.now();
+    }
 
     /*var articleData = {
      title: title,
@@ -1149,7 +1150,7 @@ router.get('/myreads', function(req, res) {
     }
 
     articles.find(query,
-        { limit: 10, skip: 10*(pageNum - 1), sort: [['_id', 'desc']] },
+        { limit: 10, skip: 10*(pageNum - 1), sort: [['publishTime', 'desc'], ['_id', 'desc']] },
         function(err, articles) {
             if (err) {
                 res.json({
