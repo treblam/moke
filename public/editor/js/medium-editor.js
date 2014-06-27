@@ -119,6 +119,44 @@ if (typeof module === 'object') {
         return !!(obj && obj.nodeType === 1);
     }
 
+    function getSelectionHtml() {
+        var html = "";
+        if (typeof window.getSelection != "undefined") {
+            var sel = window.getSelection();
+            if (sel.rangeCount) {
+                var container = document.createElement("div");
+                for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+                    container.appendChild(sel.getRangeAt(i).cloneContents());
+                }
+                html = container.innerHTML;
+            }
+        } else if (typeof document.selection != "undefined") {
+            if (document.selection.type == "Text") {
+                html = document.selection.createRange().htmlText;
+            }
+        }
+        return html;
+    }
+
+    MediumEditor.activatePlaceholder = function (el) {
+        var isEmpty = !(el.querySelector('img')) &&
+            el.textContent.replace(/^\s+|\s+$/g, '') === '';
+
+        if (isEmpty) {
+            el.innerHTML = '';
+            var p = document.createElement('p');
+            var placeholder = document.createElement('span');
+            placeholder.innerHTML = el.getAttribute('data-placeholder');
+            placeholder.className = 'medium-editor-placeholder';
+            placeholder.setAttribute('contenteditable', 'false');
+            p.appendChild(placeholder);
+            el.appendChild(p);
+        }
+
+        el.setAttribute('data-isempty', isEmpty);
+        return isEmpty
+    };
+
     MediumEditor.prototype = {
         defaults: {
             allowMultiParagraphSelection: true,
@@ -1173,24 +1211,14 @@ if (typeof module === 'object') {
             return this;
         },
 
+        reset: function() {
+            for (var i = 0; i < this.elements.length; i += 1) {
+                MediumEditor.activatePlaceholder(this.elements[i]);
+            }
+        },
+
         setPlaceholders: function () {
             var i,
-                activatePlaceholder = function (el) {
-                    if (!(el.querySelector('img')) &&
-                            el.textContent.replace(/^\s+|\s+$/g, '') === '') {
-
-                        el.innerHTML = '';
-                        var p = document.createElement('p');
-                        var placeholder = document.createElement('span');
-                        placeholder.innerHTML = el.getAttribute('data-placeholder');
-                        placeholder.className = 'medium-editor-placeholder';
-                        placeholder.setAttribute('contenteditable', 'false');
-                        p.appendChild(placeholder);
-                        el.appendChild(p);
-                        el.setAttribute('data-isempty', 'true');
-                        return true;
-                    }
-                },
                 clearPlaceholder = function(el) {
                     var placeholder = el.querySelector('.medium-editor-placeholder');
                     if (placeholder) {
@@ -1201,7 +1229,7 @@ if (typeof module === 'object') {
                 placeholderWrapper = function (e) {
                     clearPlaceholder(this);
                     if (e.type === 'blur') {
-                        activatePlaceholder(this);
+                        MediumEditor.activatePlaceholder(this);
                     }
                 },
                 keydownHandler = function(e) {
@@ -1230,20 +1258,25 @@ if (typeof module === 'object') {
                         this.removeAttribute('data-mousedown');
                         if (!isEmpty) return;
                     }
+                    console.log('isclick: ' + isClick);
+                    console.log('setCursorPosition');
 
-                    setCursorPosition(this, isEmpty);
-                    e.preventDefault();
+                    var html = getSelectionHtml();
+                    if (!html) { // 没有选中内容时才会设置光标位置
+                        setCursorPosition(this, isEmpty);
+                        e.preventDefault();
+                    }
                 },
                 keyupHandler = function(e) {
                     var which = e.keyCode || e.which;
                     if (which === 8 || which === 46) {
-                        if (activatePlaceholder(this)) {
+                        if (MediumEditor.activatePlaceholder(this)) {
                             setCursorPosition(this, true);
                         }
                     }
                 };
             for (i = 0; i < this.elements.length; i += 1) {
-                activatePlaceholder(this.elements[i]);
+                MediumEditor.activatePlaceholder(this.elements[i]);
                 this.elements[i].addEventListener('blur', placeholderWrapper);
                 this.elements[i].addEventListener('keypress', placeholderWrapper);
                 this.elements[i].addEventListener('keydown', keydownHandler);

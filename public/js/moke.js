@@ -22,7 +22,6 @@ $(document).mouseup(function(e) {
     }
 });
 
-
 var LoginUtil = {
     isLogin: function() {
 

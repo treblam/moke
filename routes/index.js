@@ -323,7 +323,7 @@ router.get('/about', function(req, res) {
     });
 });
 
-router.get('/drafts', filter.authorize, function(req, res, next) {
+/*router.get('/drafts', filter.authorize, function(req, res, next) {
     var user = req.user;
     if (!user) {
         return next(new Error('查找草稿出错'));
@@ -344,9 +344,83 @@ router.get('/drafts', filter.authorize, function(req, res, next) {
                 articles: articles,
                 id: 'drafts'
             });
-        /*} else {
+        *//*} else {
             res.redirect('/write');
-        }*/
+        }*//*
+    });
+});*/
+
+router.get('/drafts', function(req, res) {
+    var user = req.user;
+    var isDraft = req.query['draft'] === 'true';
+    var pageNum = req.query['page'];
+
+    if (!user) {
+        res.json({
+            status: 'fail',
+            code: '1',
+            message: '请登录'
+        });
+        return;
+    }
+
+    articles.find({
+        author: user._id,
+        draft: isDraft ? true : { $ne: true }
+    },
+    {
+        sort: [[isDraft ? '_id' : 'publishTime', 'desc'], ['_id', 'desc']],
+        limit: 10,
+        skip: 10*(pageNum - 1),
+        fields: {
+            title: true,
+            subtitle: true,
+            publishTime: true
+        }
+    },
+    function(err, articles) {
+        if (err) {
+            res.json({
+                status: 'error',
+                message: err.toString()
+            });
+            return;
+        }
+
+        //if (articles && articles.length > 0) {
+        res.json({
+            status: 'success',
+            data: articles,
+            message: '成功'
+        });
+        /*} else {
+         res.redirect('/write');
+         }*/
+    });
+});
+
+router.get('/drafts/:draftId', function(req, res) {
+    var draftId = req.param('draftId');
+    if (!draftId) {
+        res.json({
+            status: 'fail',
+            message: 'id为空'
+        });
+        return;
+    }
+
+    articles.findById(draftId, function(err, draft) {
+        if (err) {
+            return res.json({
+                status: 'error',
+                message: err.toString()
+            });
+        }
+        res.json({
+            status: 'success',
+            message: '成功',
+            data: draft
+        });
     });
 });
 
@@ -822,6 +896,8 @@ router.get('/myarticles', function(req, res) {
             status: 'fail',
             message: '缺少文集id'
         });
+
+        return;
     }
 
     articles.find({author: uid, draft: { $ne: true }}, function(err, articles) {
@@ -1174,5 +1250,7 @@ router.get('/myreads', function(req, res) {
         }
     );
 });
+
+
 
 module.exports = router;

@@ -31,10 +31,38 @@ block content
       input(type='hidden', name='draft')
       input#article-id(type='hidden', name='articleId' value=article ? article._id : '')
 
-  //.alert.alert-danger.alert-position 副标题太短
+
+  .drafts-logo
+
+  .drafts-container
+    //h3 我的写作
+    .drafts
+      //
+        Nav tabs
+      ul.nav.nav-tabs.my-articles-tab
+          li.active
+              a(href='#drafts-content', data-toggle='tab') 草稿
+          li
+              a(href='#articles-content', data-toggle='tab') 已发布
+      //
+        Tab panes
+      .tab-content.drafts-tab-content
+          #drafts-content.tab-pane.active.drafts-tab-pane(data-draft='true')
+            ul.draft-list
+            .load-more
+                button.btn.btn-sm.btn-default 更多
+          #articles-content.tab-pane.drafts-tab-pane
+            ul.draft-list
+            .load-more
+                button.btn.btn-sm.btn-default 更多
+
+    //.alert.alert-danger.alert-position 副标题太短
 
 block script
   script(src='/editor/js/medium-editor.js')
+  script(type='text/javascript', src='/js/runtime.js')
+  script(type='text/javascript', src='/views/drafts.js')
+  script(type='text/javascript', src='/js/jquery.nicescroll.js')
   script.
     var editors = new MediumEditor('.editable');
 
@@ -194,3 +222,132 @@ block script
               range.select();//Select the range (make it the visible selection
           }
     }
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        var curTab = $(this);
+        var selector = curTab.attr('href').replace(/^.+#/, '#');
+        var tabContent = $(selector);
+        tabContent.data('page', 1);
+        tabContent.addClass('drafts-loading');
+        getDrafts(tabContent);
+    });
+
+
+    $('.drafts-logo').mouseup(function(e) {
+      e.stopPropagation();
+      var container = $('.drafts-container');
+      if (!container.is(':visible')) {
+          //container.slideDown();
+          container.show();
+          container.animate({left: 0});
+          triggerActiveTab();
+      }
+    });
+
+      // 草稿
+      $(document).mouseup(function(e) {
+          var drafts = $('.drafts-container');
+          if (!drafts.is(e.target) && drafts.has(e.target).length === 0) {
+                  drafts.animate({left: -300}, function() {
+                  $(this).hide();
+              });
+          }
+      });
+
+    triggerActiveTab();
+
+    function triggerActiveTab() {
+        $('.nav-tabs .active a').trigger('shown.bs.tab');
+    }
+
+    var draftsContent = $('.drafts-tab-content');
+
+    draftsContent.niceScroll();
+
+    function getDrafts(el) {
+        var isDraft = el.attr('data-draft') === 'true',
+            page = el.data('page');
+        $.ajax({
+            url: '/drafts',
+            data: {
+                draft: isDraft,
+                page: page
+            }
+        }).done(function(data) {
+            el.removeClass('drafts-loading');
+            if (data.status == 'success') {
+                el.data('page', el.data('page') + 1);
+                var hasMore = data.data.length >= 10;
+                if (hasMore) {
+                    el.addClass('drafts-has-more');
+                } else {
+                    el.removeClass('drafts-has-more');
+                }
+                var ul = el.find('.draft-list');
+                if (data.data && data.data.length > 0) {
+                    if (page == 1) {
+                        ul.html(template({ articles: data.data }));
+                    } else {
+                        ul.append(template({ articles: data.data }));
+                    }
+                    draftsContent.getNiceScroll().resize();
+                }
+            } else {
+                if (data.code == 1) {
+                    LoginUtil.login();
+                } else {
+                    console.log(data.message);
+                    AlertUtil.alert('danger', data.message);
+                }
+            }
+        }).fail(function(jqXHR, textStatus, error) {
+            AlertUtil.alert(textStatus);
+        });
+    }
+
+    $(document).on('click', '.drafts-tab-pane a', function(e) {
+        console.log('abc');
+        var id = $(this).data('id');
+        $.ajax({
+            url: '/drafts/' + id
+        }).done(function(data) {
+            if (data.status == 'success') {
+                if (data.data) {
+                    $('#title').html('<p>' + data.data.title + '</p>');
+                    $('#subtitle').html('<p>' + data.data.subtitle + '</p>');
+                    $('#content').html(data.data.content);
+                    articleId = data.data._id.toString();
+                    editors.reset();
+                    editables.get(0).focus();
+                } else {
+
+                }
+            }
+        }).fail(function(jqXHR, statusText, error) {
+            AlertUtil.alert('danger', statusText)
+        })
+    }).on('click', '.drafts-tab-pane .load-more .btn', function(e) {
+        var that = $(this);
+        var pane = that.closest('.drafts-tab-pane');
+        getDrafts(pane);
+    });
+
+    function calculateHeight() {
+        var ctnerHeight = $('.drafts-container').height();
+        console.log('cnterHeight: ' + ctnerHeight);
+        var draftsEl = $('.drafts');
+        console.log('paddingtop:' + draftsEl.css('padding-top'));
+        console.log('margintop:' + draftsEl.css('margin-top'));
+        console.log('outerwidth:' + $('.my-articles-tab').outerHeight());
+        var tobeSubtract = parseInt(draftsEl.css('padding-top'), 10) + parseInt(draftsEl.css('padding-bottom'), 10) +
+            parseInt(draftsEl.css('margin-top'), 10) + $('.my-articles-tab').outerHeight();
+
+        draftsContent.height(ctnerHeight - tobeSubtract);
+        console.log('height to be set: ' + ctnerHeight - tobeSubtract);
+    }
+
+    calculateHeight();
+
+    $(window).on('scroll', function(e) {
+        calculateHeight();
+    });
