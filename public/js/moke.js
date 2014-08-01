@@ -35,10 +35,14 @@ var LoginUtil = {
         });
 
         $(window).on('message', function(e) {
-            if (/\/signin$/.test(window.location.href)) {
-                window.location.href = '/read';
+            if (e.isSuc) {
+                if (/\/signin$/.test(window.location.href)) {
+                    window.location.href = '/read';
+                } else {
+                    window.location.reload();
+                }
             } else {
-                window.location.reload();
+                // do nothing.
             }
         });
     }

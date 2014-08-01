@@ -786,12 +786,12 @@ router.get('/auth/qq',
 router.get('/auth/qq/callback', function(req, res, next) {
         passport.authenticate('qq', function(err, user, info) {
             if (err) { return next(err); }
-            if (!user) { return res.redirect('/loginredirect?suc=0'); }
+            if (!user) { return res.render('loginredirect', {suc: 0}); }
             req.logIn(user, function(err) {
                 if (err) { return next(err); }
-                var redirectTo = req.session.redirectTo || '/loginredirect?suc=0';
+                var redirectTo = req.session.redirectTo;
                 delete req.session.redirectTo;
-                return res.redirect(redirectTo);
+                return res.render('loginredirect', {suc: 1, redirectTo: redirectTo});
             });
         })(req, res, next);
     }

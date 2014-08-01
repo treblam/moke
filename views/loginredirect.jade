@@ -19,10 +19,11 @@ html
                 return results[1];
             }
 
-            var isSuc = gup('suc') == 1;
+            var isSuc = (#{suc} === 1);
+            var redirectUrl = '#{redirectTo}';
 
             if (window.opener) {
-                window.opener.postMessage({ isSuc: isSuc }, 'http://www.moke.io');
+                window.opener.postMessage({ isSuc: isSuc, redirectUrl: redirectUrl}, 'http://www.moke.io');
                 window.opener.focus();
             }
             window.close();
