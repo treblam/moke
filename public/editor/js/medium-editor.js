@@ -1,3 +1,5 @@
+/*global module, console*/
+
 function MediumEditor(elements, options) {
     'use strict';
     return this.init(elements, options);
@@ -179,7 +181,10 @@ if (typeof module === 'object') {
             placeholder: 'Type your text',
             secondHeader: 'h4',
             targetBlank: false,
-            extensions: {}
+            extensions: {},
+            activeButtonClass: 'medium-editor-button-active',
+            firstButtonClass: 'medium-editor-button-first',
+            lastButtonClass: 'medium-editor-button-last'
         },
 
         // http://stackoverflow.com/questions/17907445/how-to-detect-ie11#comment30165888_17907562
@@ -203,7 +208,8 @@ if (typeof module === 'object') {
                 .bindSelect()
                 .bindPaste()
                 .setPlaceholders()
-                .bindWindowActions();
+                .bindWindowActions()
+                .passInstance();
         },
 
         initElements: function () {
@@ -294,6 +300,29 @@ if (typeof module === 'object') {
                     }
                 }
             }
+        },
+
+        /**
+         * Pass current Medium Editor instance to all extensions
+         * if extension constructor has 'parent' attribute set to 'true'
+         *
+         */
+        passInstance: function () {
+            var self = this,
+                ext,
+                name;
+
+            for (name in self.options.extensions) {
+                if (self.options.extensions.hasOwnProperty(name)) {
+                    ext = self.options.extensions[name];
+
+                    if (ext.parent) {
+                        ext.base = self;
+                    }
+                }
+            }
+
+            return self;
         },
 
         bindParagraphCreation: function (index) {
@@ -675,7 +704,7 @@ if (typeof module === 'object') {
             var buttons = this.toolbarActions.querySelectorAll('button'),
                 i;
             for (i = 0; i < buttons.length; i += 1) {
-                buttons[i].classList.remove('medium-editor-button-active');
+                buttons[i].classList.remove(this.options.activeButtonClass);
             }
             this.checkActiveButtons();
             return this;
@@ -698,8 +727,8 @@ if (typeof module === 'object') {
 
         activateButton: function (tag) {
             var el = this.toolbar.querySelector('[data-element="' + tag + '"]');
-            if (el !== null && el.className.indexOf('medium-editor-button-active') === -1) {
-                el.className += ' medium-editor-button-active';
+            if (el !== null && el.className.indexOf(this.options.activeButtonClass) === -1) {
+                el.className += ' ' + this.options.activeButtonClass;
             }
         },
 
@@ -713,10 +742,10 @@ if (typeof module === 'object') {
                     if (self.selection === undefined) {
                         self.checkSelection();
                     }
-                    if (this.className.indexOf('medium-editor-button-active') > -1) {
-                        this.classList.remove('medium-editor-button-active');
+                    if (this.className.indexOf(self.options.activeButtonClass) > -1) {
+                        this.classList.remove(self.options.activeButtonClass);
                     } else {
-                        this.className += ' medium-editor-button-active';
+                        this.className += ' ' + self.options.activeButtonClass;
                     }
                     if (this.hasAttribute('data-action')) {
                         self.execAction(this.getAttribute('data-action'), e);
@@ -731,8 +760,8 @@ if (typeof module === 'object') {
 
         setFirstAndLastItems: function (buttons) {
             if (buttons.length > 0) {
-                buttons[0].className += ' medium-editor-button-first';
-                buttons[buttons.length - 1].className += ' medium-editor-button-last';
+                buttons[0].className += ' ' + this.options.firstButtonClass;
+                buttons[buttons.length - 1].className += ' ' + this.options.lastButtonClass;
             }
             return this;
         },
@@ -862,9 +891,17 @@ if (typeof module === 'object') {
             }, 100);
         },
 
+        saveSelection: function() {
+            this.savedSelection = saveSelection();
+        },
+
+        restoreSelection: function() {
+            restoreSelection(this.savedSelection);
+        },
+
         showAnchorForm: function (link_value) {
             this.toolbarActions.style.display = 'none';
-            this.savedSelection = saveSelection();
+            this.saveSelection();
             this.anchorForm.style.display = 'block';
             this.keepToolbarAlive = true;
             this.anchorInput.focus();
@@ -1078,11 +1115,8 @@ if (typeof module === 'object') {
         },
 
         checkLinkFormat: function (value) {
-            var re = /^https?:\/\//;
-            if (value.match(re)) {
-                return value;
-            }
-            return "http://" + value;
+            var re = /^(https?|ftps?|rtmpt?):\/\/|mailto:/;
+            return (re.test(value) ? '' : 'http://') + value;
         },
 
         setTargetBlank: function () {
@@ -1099,6 +1133,10 @@ if (typeof module === 'object') {
         },
 
         createLink: function (input) {
+            if (input.value.trim().length === 0) {
+                this.hideToolbarActions();
+                return;
+            }
             restoreSelection(this.savedSelection);
             if (this.options.checkLinkFormat) {
                 input.value = this.checkLinkFormat(input.value);
