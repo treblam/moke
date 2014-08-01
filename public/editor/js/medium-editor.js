@@ -62,31 +62,6 @@ if (typeof module === 'object') {
         return startNode;
     }
 
-    // http://stackoverflow.com/questions/4176923/html-of-selected-text
-    // by Tim Down
-    function getSelectionHtml() {
-        var i,
-            html = '',
-            sel,
-            len,
-            container;
-        if (window.getSelection !== undefined) {
-            sel = window.getSelection();
-            if (sel.rangeCount) {
-                container = document.createElement('div');
-                for (i = 0, len = sel.rangeCount; i < len; i += 1) {
-                    container.appendChild(sel.getRangeAt(i).cloneContents());
-                }
-                html = container.innerHTML;
-            }
-        } else if (document.selection !== undefined) {
-            if (document.selection.type === 'Text') {
-                html = document.selection.createRange().htmlText;
-            }
-        }
-        return html;
-    }
-
     // http://stackoverflow.com/questions/1125292/how-to-move-cursor-to-end-of-contenteditable-entity
     // by Nico Burns
     // param position:  true left, false right.
@@ -122,18 +97,18 @@ if (typeof module === 'object') {
     }
 
     function getSelectionHtml() {
-        var html = "";
-        if (typeof window.getSelection != "undefined") {
-            var sel = window.getSelection();
+        var html = "", sel, container, i, len;
+        if (window.getSelection !== undefined) {
+            sel = window.getSelection();
             if (sel.rangeCount) {
-                var container = document.createElement("div");
-                for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+                container = document.createElement("div");
+                for (i = 0, len = sel.rangeCount; i < len; i += 1) {
                     container.appendChild(sel.getRangeAt(i).cloneContents());
                 }
                 html = container.innerHTML;
             }
-        } else if (typeof document.selection != "undefined") {
-            if (document.selection.type == "Text") {
+        } else if (document.selection !== undefined) {
+            if (document.selection.type === "Text") {
                 html = document.selection.createRange().htmlText;
             }
         }
@@ -142,12 +117,13 @@ if (typeof module === 'object') {
 
     MediumEditor.activatePlaceholder = function (el) {
         var isEmpty = !(el.querySelector('img')) &&
-            el.textContent.replace(/^\s+|\s+$/g, '') === '';
+            el.textContent.replace(/^\s+|\s+$/g, '') === '',
+            p, placeholder;
 
         if (isEmpty) {
             el.innerHTML = '';
-            var p = document.createElement('p');
-            var placeholder = document.createElement('span');
+            p = document.createElement('p');
+            placeholder = document.createElement('span');
             placeholder.innerHTML = el.getAttribute('data-placeholder');
             placeholder.className = 'medium-editor-placeholder';
             placeholder.setAttribute('contenteditable', 'false');
@@ -156,7 +132,7 @@ if (typeof module === 'object') {
         }
 
         el.setAttribute('data-isempty', isEmpty);
-        return isEmpty
+        return isEmpty;
     };
 
     MediumEditor.prototype = {
@@ -259,7 +235,7 @@ if (typeof module === 'object') {
                 elementid,
                 content = {},
                 value,
-                holderExp = /<span\s.*class="medium-editor-placeholder"(?:\s.+)?>.*<\/span>/m;
+                holderExp = /<span\s[\w\W]*class="medium-editor-placeholder"(?:\s[\w\W]+)?>[\w\W]*<\/span>/m;
             for (i = 0; i < this.elements.length; i += 1) {
                 elementid = (this.elements[i].id !== '') ? this.elements[i].id : 'element-' + i;
                 value = this.elements[i].innerHTML.trim();
@@ -267,7 +243,7 @@ if (typeof module === 'object') {
                     value = '';
                 } else if (this.options.disableReturn || this.elements[i].getAttribute('data-disable-return')) {
                     // if return is disabled, remove the html markups.
-                    value = value.replace(/^<p>(.*)<\/p>$/, '$1');
+                    value = value.replace(/^<p>([\w\W]*)<\/p>$/, '$1');
                 }
                 content[elementid] = {
                     value: value
@@ -1250,7 +1226,8 @@ if (typeof module === 'object') {
         },
 
         reset: function() {
-            for (var i = 0; i < this.elements.length; i += 1) {
+            var i;
+            for (i = 0; i < this.elements.length; i += 1) {
                 MediumEditor.activatePlaceholder(this.elements[i]);
             }
         },
@@ -1272,15 +1249,15 @@ if (typeof module === 'object') {
                 },
                 keydownHandler = function(e) {
                     var which = e.keyCode || e.which;
-                    if (which === 229 || which >= 65 && which <= 90) {
+                    if (which === 229 || (which >= 65 && which <= 90)) {
                         clearPlaceholder(this);
                     }
-                    if (this.getAttribute('data-isempty') == 'true' && (which >= 37 && which <= 40 || which === 8 || which === 46)) {
+                    if (this.getAttribute('data-isempty') === 'true' && ((which >= 37 && which <= 40) || which === 8 || which === 46)) {
                         e.preventDefault();
                     }
                 },
                 mousedownHandler = function(e) {
-                    if (document.activeElement != this) {
+                    if (document.activeElement !== this) {
                         this.setAttribute('data-mousedown', 'true');
                     }
 
@@ -1290,16 +1267,20 @@ if (typeof module === 'object') {
                     }
                 },
                 focusHandler = function(e) {
-                    var isEmpty = this.getAttribute('data-isempty') === 'true';
-                    var isClick = this.getAttribute('data-mousedown') === 'true';
+                    var isEmpty, isClick, html;
+                    
+                    isEmpty = this.getAttribute('data-isempty') === 'true';
+                    isClick = this.getAttribute('data-mousedown') === 'true';
                     if (isClick) {
                         this.removeAttribute('data-mousedown');
-                        if (!isEmpty) return;
+                        if (!isEmpty) {
+                            return;
+                        }
                     }
                     console.log('isclick: ' + isClick);
                     console.log('setCursorPosition');
 
-                    var html = getSelectionHtml();
+                    html = getSelectionHtml();
                     if (!html) { // 没有选中内容时才会设置光标位置
                         setCursorPosition(this, isEmpty);
                         e.preventDefault();
